@@ -23,7 +23,7 @@ function Navbar() {
         <Link legacyBehavior href="/flights">
           <a className="text-white hover:text-gray-200 transition-colors duration-200">Flights</a>
         </Link>
-        <Link legacyBehavior href="/book">
+        <Link legacyBehavior href="/book-flight">
           <a className="text-white hover:text-gray-200 transition-colors duration-200">Book Now</a>
         </Link>
         <Link legacyBehavior href="/contact">
@@ -31,6 +31,9 @@ function Navbar() {
         </Link>
         <Link legacyBehavior href="/login">
           <a className="text-white hover:text-gray-200 transition-colors duration-200">Login</a>
+        </Link>
+        <Link legacyBehavior href="/register">
+          <a className="text-white hover:text-gray-200 transition-colors duration-200">Signup</a>
         </Link>
       </div>
     </nav>
