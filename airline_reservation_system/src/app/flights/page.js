@@ -90,6 +90,7 @@ import { useState } from 'react';
 export default function BookFlight() {
   const [departureAirport, setDepartureAirport] = useState('');
   const [destinationAirport, setDestinationAirport] = useState('');
+  const [flightDate, setFlightDate] = useState(new Date().toISOString().split('T')[0]);
   const [flights, setFlights] = useState([]);
   const [error, setError] = useState('');
 
@@ -99,13 +100,13 @@ export default function BookFlight() {
     setFlights([]);
     
     if (!departureAirport.trim() || !destinationAirport.trim()) {
-      setError("Please enter both departure and destination airport names.");
+      setError("Please enter departure, destination airport names.");
       return;
     }
     
     try {
       const res = await fetch(
-        `/api/flights?airportName=${encodeURIComponent(departureAirport)}&destinationName=${encodeURIComponent(destinationAirport)}`
+        `/api/flights?airportName=${encodeURIComponent(departureAirport)}&destinationName=${encodeURIComponent(destinationAirport)}&flightDate=${encodeURIComponent(flightDate)}`
       );
       const data = await res.json();
       
@@ -142,6 +143,15 @@ export default function BookFlight() {
           />
         </label>
         <br />
+        <label>
+          Flight Date:
+          <input 
+            type="date"
+            value={flightDate}
+            onChange={(e) => setFlightDate(e.target.value)}
+          />
+        </label>
+        <br />
         <button type="submit">Search Flights</button>
       </form>
       
@@ -153,10 +163,24 @@ export default function BookFlight() {
           <ul>
             {flights.map((flight) => (
               <li key={flight.flight_id}>
-                Flight Number: {flight.flight_number} | 
-                Departure Time: {flight.scheduled_departure_time} | 
-                Arrival Time: {flight.scheduled_arrival_time} | 
-                Status: {flight.status}
+                <p>
+                  <strong>Flight Number:</strong> {flight.flight_id} | 
+                  <strong> Departure Time:</strong> {flight.scheduled_departure_time} | 
+                  <strong> Arrival Time:</strong> {flight.scheduled_arrival_time} | 
+                  <strong> Status:</strong> {flight.status}
+                </p>
+                {flight.pricing_info && (
+                  <ul>
+                    {flight.pricing_info.map((price, idx) => (
+                      <li key={idx}>
+                        <strong>Class:</strong> {price.seat_class} | 
+                        <strong> Base Price:</strong> {price.base_price} | 
+                        <strong> Current Price:</strong> {price.current_price} | 
+                        <strong> Demand Factor:</strong> {price.demand_factor}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>
@@ -167,3 +191,4 @@ export default function BookFlight() {
     </div>
   );
 }
+
