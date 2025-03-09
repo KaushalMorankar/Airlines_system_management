@@ -170,13 +170,13 @@
   
   export async function GET(request) {
     const { searchParams } = new URL(request.url);
-    const departureAirport = searchParams.get("airportName");
-    const destinationAirport = searchParams.get("destinationName");
+    const departureCity = searchParams.get("departureCity");
+    const destinationCity = searchParams.get("destinationCity");
     const flightDateParam = searchParams.get("flightDate");
   
-    if (!departureAirport || !destinationAirport) {
+    if (!departureCity || !destinationCity) {
       return NextResponse.json(
-        { error: "Both departure and destination airport names are required" },
+        { error: "Both departure and destination cities are required" },
         { status: 400 }
       );
     }
@@ -187,8 +187,8 @@
   
     try {
       const depRes = await pool.query(
-        "SELECT airport_id FROM airports WHERE name = $1",
-        [departureAirport]
+        "SELECT airport_id FROM airports WHERE city = $1",
+        [departureCity]
       );
       if (depRes.rows.length === 0) {
         return NextResponse.json(
@@ -199,8 +199,8 @@
       const departureAirportId = depRes.rows[0].airport_id;
   
       const destRes = await pool.query(
-        "SELECT airport_id FROM airports WHERE name = $1",
-        [destinationAirport]
+        "SELECT airport_id FROM airports WHERE city = $1",
+        [destinationCity]
       );
       if (destRes.rows.length === 0) {
         return NextResponse.json(
@@ -210,7 +210,6 @@
       }
       const destinationAirportId = destRes.rows[0].airport_id;
   
-      // The query below fetches flights and joins each with its pricing information.
       const flightsRes = await pool.query(
         `SELECT f.*, 
                 (
@@ -243,4 +242,4 @@
       );
     }
   }
-  
+   

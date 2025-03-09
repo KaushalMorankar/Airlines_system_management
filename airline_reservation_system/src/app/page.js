@@ -63,7 +63,7 @@ export default function Home() {
               Aenean placerat nisl quis convallis ullamcorper.
             </p>
             {/* Button wrapped with Link */}
-      <Link href="/book-flight">
+      <Link href="/flights">
         <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">
           Book Now
         </button>
