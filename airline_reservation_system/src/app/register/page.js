@@ -1,18 +1,17 @@
 "use client";
-
-import { useState } from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    user_id:"",
     full_name: "",
     email: "",
     phone_number: "",
     address: "",
     password: "",
   });
-
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,14 +19,27 @@ export default function RegisterPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    const response = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    setMessage("");
 
-    const data = await response.json();
-    setMessage(data.message);
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        // Registration successful: redirect to Home (user is now logged in)
+        router.push("/");
+      } else {
+        // If user already exists or another error occurred, show the message
+        setMessage(data.message);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setMessage("Failed to register user.");
+    }
   };
 
   return (

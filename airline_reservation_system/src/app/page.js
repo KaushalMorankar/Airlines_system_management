@@ -1,49 +1,19 @@
 import React from "react";
 import Link from "next/link";
+import Navbar from "@/components/Navbar"; // Ensure the path is correct
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* ---------- HEADER ---------- */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          {/* Logo (left) */}
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">✈</span>
-            <h2 className="text-xl font-bold">Airlines</h2>
-          </div>
-
-          {/* Navigation + Search (right) */}
-          <nav className="flex items-center space-x-8">
-            <a href="#" className="text-blue-600 font-semibold">
-              Home
-            </a>
-            <a href="#" className="text-gray-600 hover:text-blue-600 transition">
-              About
-            </a>
-            <a href="#" className="text-gray-600 hover:text-blue-600 transition">
-              Services
-            </a>
-            <a href="#" className="text-gray-600 hover:text-blue-600 transition">
-              Contact
-            </a>
-            <input
-              type="text"
-              placeholder="Search"
-              className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-          </nav>
-        </div>
-      </header>
+      <Navbar />
 
       {/* ---------- HERO SECTION ---------- */}
       <section className="relative flex-grow overflow-hidden">
         {/* Diagonal blue shape on the right */}
         <div
           className="hidden md:block absolute top-0 right-0 w-1/2 h-full bg-blue-500"
-          style={{
-            clipPath: "polygon(100% 0, 100% 100%, 50% 100%)",
-          }}
+          style={{ clipPath: "polygon(100% 0, 100% 100%, 50% 100%)" }}
         />
 
         {/* Optional faint world map (centered behind the text) */}
@@ -59,15 +29,16 @@ export default function Home() {
               Hi, <span className="text-blue-600">where</span> would you like to go?
             </h1>
             <p className="text-gray-600 mb-6">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-              Aenean placerat nisl quis convallis ullamcorper.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean placerat nisl quis convallis ullamcorper.
             </p>
             {/* Button wrapped with Link */}
-      <Link href="/flights">
-        <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">
-          Book Now
-        </button>
-      </Link>
+            <Link href="/flights" legacyBehavior>
+              <a>
+                <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">
+                  Book Now
+                </button>
+              </a>
+            </Link>
           </div>
 
           {/* Right side: Airplane image */}
