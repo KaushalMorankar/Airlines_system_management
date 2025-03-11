@@ -20,9 +20,9 @@ export async function POST(request) {
     // Begin transaction
     await pool.query("BEGIN");
 
-    // 1. Calculate total price by summing the current_price from the pricing table
+    // 1. Calculate total price by summing the current_price from the pricing table.
     let totalPrice = 0;
-    // Lock selected seat rows for update
+    // Lock selected seat rows for update.
     const seatQuery = `
       SELECT seat_allocation_id, seatnumber, seat_class
       FROM seat_allocation
@@ -38,7 +38,7 @@ export async function POST(request) {
       );
     }
     const seats = seatRes.rows;
-    // For each seat, get the pricing for the flight and its seat_class
+    // For each seat, get the pricing for the flight and its seat_class.
     for (const seat of seats) {
       const pricingQuery = `
         SELECT current_price
@@ -60,7 +60,7 @@ export async function POST(request) {
       totalPrice += price;
     }
 
-    // 2. Insert a new reservation record
+    // 2. Insert a new reservation record.
     const insertReservationQuery = `
       INSERT INTO reservations (user_id, flight_id, bookingdate, status, total_price)
       VALUES ($1, $2, NOW(), 'Confirmed', $3)
@@ -73,7 +73,7 @@ export async function POST(request) {
     ]);
     const reservationId = reservationRes.rows[0].reservation_id;
 
-    // 3. Update each selected seat to mark it as booked and link to the reservation
+    // 3. Update each selected seat to mark it as booked and link to the reservation.
     const updateSeatQuery = `
       UPDATE seat_allocation
       SET reservation_id = $1, status = 'booked'
@@ -81,7 +81,7 @@ export async function POST(request) {
     `;
     await pool.query(updateSeatQuery, [reservationId, seatAllocationIds]);
 
-    // 4. Insert a ticket for each booked seat
+    // 4. Insert a ticket for each booked seat.
     for (const seat of seats) {
       const insertTicketQuery = `
         INSERT INTO tickets (reservation_id, flight_id, seatnumber, ticketstatus)
@@ -94,7 +94,7 @@ export async function POST(request) {
       ]);
     }
 
-    // 5. Optionally update pricing (for example, increase demand factor)
+    // 5. Optionally update pricing (for example, increase demand factor).
     for (const seat of seats) {
       const updatePricingQuery = `
         UPDATE pricing
@@ -106,9 +106,21 @@ export async function POST(request) {
       await pool.query(updatePricingQuery, [flightId, seat.seat_class]);
     }
 
+    // 6. Insert a payment record into the payments table.
+    const insertPaymentQuery = `
+      INSERT INTO payments (reservation_id, payment_date, amount, payment_method, payment_status)
+      VALUES ($1, CURRENT_DATE, $2, 'Card', 'Paid')
+      RETURNING payment_id, reservation_id, payment_date, amount, payment_method, payment_status
+    `;
+    const paymentRes = await pool.query(insertPaymentQuery, [
+      reservationId,
+      totalPrice,
+    ]);
+    const payment = paymentRes.rows[0];
+
     await pool.query("COMMIT");
     return NextResponse.json(
-      { reservationId, totalPrice },
+      { reservationId, totalPrice, payment },
       { status: 200 }
     );
   } catch (error) {

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar"; // Ensure the path is correct
 
 export default function FlightInfo() {
   const [seats, setSeats] = useState([]);
@@ -56,6 +57,8 @@ export default function FlightInfo() {
   };
 
   return (
+     <div> 
+      <Navbar/>
     <div className="min-h-screen bg-gray-50 p-4">
       <h1 className="text-3xl font-bold mb-4">
         Flight {flightId} Seat Layout
@@ -99,6 +102,7 @@ export default function FlightInfo() {
       >
         Proceed to Payment
       </button>
+    </div>
     </div>
   );
 }

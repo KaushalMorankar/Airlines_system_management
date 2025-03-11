@@ -63,8 +63,9 @@
 
 
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar"; // Ensure the path is correct
 
 export default function Payments() {
   const searchParams = useSearchParams();
@@ -73,11 +74,28 @@ export default function Payments() {
   const seatAllocationIds = seatIdsParam
     ? seatIdsParam.split(",").map((id) => parseInt(id))
     : [];
+    
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [reservationId, setReservationId] = useState(null);
   const [totalPrice, setTotalPrice] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
+
+  // Check login status via the API endpoint.
+  useEffect(() => {
+    async function checkLoginStatus() {
+      try {
+        const res = await fetch("/api/auth/status");
+        const data = await res.json();
+        setIsLoggedIn(data.isLoggedIn);
+      } catch (err) {
+        console.error("Error checking login status", err);
+        setIsLoggedIn(false);
+      }
+    }
+    checkLoginStatus();
+  }, []);
 
   const handlePayment = async () => {
     setLoading(true);
@@ -101,6 +119,7 @@ export default function Payments() {
         setTotalPrice(data.totalPrice);
       }
     } catch (err) {
+      console.error("Error processing payment", err);
       setError("Payment processing error");
     } finally {
       setLoading(false);
@@ -108,34 +127,47 @@ export default function Payments() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      <h1 className="text-3xl font-bold mb-4">Payment Page</h1>
-      <p>Flight ID: {flightId}</p>
-      <p>Selected Seat IDs: {seatAllocationIds.join(", ")}</p>
-      {reservationId ? (
-        <div>
-          <p className="text-green-600">Payment successful!</p>
-          <p>Reservation ID: {reservationId}</p>
-          <p>Total Price: ${totalPrice.toFixed(2)}</p>
-          <button
-            onClick={() => router.push("/")}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            Go to Home
-          </button>
-        </div>
-      ) : (
-        <div>
-          {error && <p className="text-red-600 mb-4">{error}</p>}
-          <button
-            onClick={handlePayment}
-            disabled={loading}
-            className="bg-green-600 text-white px-4 py-2 rounded"
-          >
-            {loading ? "Processing..." : "Pay Now"}
-          </button>
-        </div>
-      )}
+    <div>
+      <Navbar />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+        <h1 className="text-3xl font-bold mb-4">Payment Page</h1>
+        <p>Flight ID: {flightId}</p>
+        <p>Selected Seat IDs: {seatAllocationIds.join(", ")}</p>
+        <p>Total Price: ${totalPrice.toFixed(2)}</p>
+        {reservationId ? (
+          <div>
+            <p className="text-green-600">Payment successful!</p>
+            <p>Reservation ID: {reservationId}</p>
+            <p>Total Price: ${totalPrice.toFixed(2)}</p>
+            <button
+              onClick={() => router.push("/")}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Go to Home
+            </button>
+          </div>
+        ) : (
+          <div>
+            {error && <p className="text-red-600 mb-4">{error}</p>}
+            {isLoggedIn ? (
+              <button
+                onClick={handlePayment}
+                disabled={loading}
+                className="bg-green-600 text-white px-4 py-2 rounded"
+              >
+                {loading ? "Processing..." : "Pay Now"}
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push("/login")}
+                className="bg-yellow-600 text-white px-4 py-2 rounded"
+              >
+                Login to Pay
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

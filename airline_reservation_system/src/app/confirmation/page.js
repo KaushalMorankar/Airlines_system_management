@@ -1,8 +1,11 @@
 "use client";
 import Link from "next/link";
+import Navbar from "@/components/Navbar"; // Ensure the path is correct
 
 export default function ConfirmationPage() {
   return (
+    <div>
+    <Navbar/>
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       <h1 className="text-3xl font-bold mb-4">Booking Confirmed!</h1>
       <p className="mb-4">Your flight has been successfully booked.</p>
@@ -11,6 +14,7 @@ export default function ConfirmationPage() {
           Go to Home
         </a>
       </Link>
+    </div>
     </div>
   );
 }

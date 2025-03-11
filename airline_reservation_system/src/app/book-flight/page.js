@@ -32,6 +32,7 @@
 
 "use client";
 import { useState } from "react";
+import Navbar from "@/components/Navbar"; // Ensure the path is correct
 
 export default function BookFlight() {
   const [departureAirport, setDepartureAirport] = useState("");
@@ -69,6 +70,8 @@ export default function BookFlight() {
   };
 
   return (
+     <div> 
+      <Navbar/>
     <div className="min-h-screen bg-gray-100 flex flex-col items-center py-12 px-4">
       <h1 className="text-3xl font-bold mb-6">Book Your Flight</h1>
       <form
@@ -128,6 +131,7 @@ export default function BookFlight() {
           </p>
         </div>
       )}
+    </div>
     </div>
   );
 }

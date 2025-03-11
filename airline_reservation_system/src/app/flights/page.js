@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar"; // Ensure the path is correct
 
 export default function BookFlight() {
   const [departureQuery, setDepartureQuery] = useState("");
@@ -109,6 +110,8 @@ export default function BookFlight() {
   };
 
   return (
+     <div> 
+      <Navbar/>
     <div className="min-h-screen bg-gray-100 flex flex-col items-center py-12 px-4">
       <h1 className="text-3xl font-bold mb-6">Book Your Flight</h1>
       <form
@@ -255,6 +258,7 @@ export default function BookFlight() {
       {!error && flights.length === 0 && (
         <p className="mt-4 text-gray-600">No flights found for these cities.</p>
       )}
+    </div>
     </div>
   );
 }
