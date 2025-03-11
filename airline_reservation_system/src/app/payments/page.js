@@ -133,7 +133,7 @@ export default function Payments() {
         <h1 className="text-3xl font-bold mb-4">Payment Page</h1>
         <p>Flight ID: {flightId}</p>
         <p>Selected Seat IDs: {seatAllocationIds.join(", ")}</p>
-        <p>Total Price: ${totalPrice.toFixed(2)}</p>
+        {/* <p>Total Price: ${totalPrice.toFixed(2)}</p> */}
         {reservationId ? (
           <div>
             <p className="text-green-600">Payment successful!</p>
