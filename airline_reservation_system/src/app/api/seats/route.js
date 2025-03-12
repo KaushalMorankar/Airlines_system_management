@@ -15,9 +15,20 @@ export async function GET(request) {
 
   try {
     const seatsResult = await pool.query(
-      `SELECT seat_allocation_id, flight_id, seatnumber, seat_class, reservation_id, status
-       FROM seat_allocation
-       WHERE flight_id = $1`,
+      `SELECT 
+      s.seat_allocation_id, 
+      s.flight_id, 
+      s.seatnumber, 
+      s.seat_class, 
+      s.reservation_id, 
+      s.status,
+      p.current_price
+    FROM seat_allocation s
+    LEFT JOIN pricing p 
+      ON s.flight_id = p.flight_id 
+      AND s.seat_class = p.seat_class
+    WHERE s.flight_id = $1
+    ORDER BY s.seat_class ASC, CAST(s.seatnumber AS integer) ASC;`,
       [flightId]
     );
 
