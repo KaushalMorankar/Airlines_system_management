@@ -31,14 +31,23 @@ export default function Home() {
             <p className="text-gray-600 mb-6">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean placerat nisl quis convallis ullamcorper.
             </p>
-            {/* Button wrapped with Link */}
-            <Link href="/flights" legacyBehavior>
-              <a>
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">
-                  Book Now
-                </button>
-              </a>
-            </Link>
+            {/* Buttons wrapped with Link */}
+            <div className="flex gap-4">
+              <Link href="/flights" legacyBehavior>
+                <a>
+                  <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">
+                    Book Now
+                  </button>
+                </a>
+              </Link>
+              <Link href="/bookings" legacyBehavior>
+                <a>
+                  <button className="bg-gray-600 text-white px-6 py-3 rounded-md hover:bg-gray-700 transition">
+                    My Bookings
+                  </button>
+                </a>
+              </Link>
+            </div>
           </div>
 
           {/* Right side: Airplane image */}

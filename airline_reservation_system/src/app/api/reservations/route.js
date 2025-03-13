@@ -25,9 +25,27 @@ export async function POST(request) {
       console.error("JWT verification error:", err);
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
-    const userId = decoded.id; // User ID from JWT
 
-    // 2. Parse the request body and validate required fields.
+    // 2. Instead of using decoded.id directly, get the user ID from the users table using the email.
+    const userEmail = decoded.email;
+    if (!userEmail) {
+      return NextResponse.json(
+        { error: "User information missing in token" },
+        { status: 400 }
+      );
+    }
+    const userQuery = `
+      SELECT user_id FROM users
+      WHERE email = $1
+      LIMIT 1;
+    `;
+    const userResult = await pool.query(userQuery, [userEmail]);
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    const userId = userResult.rows[0].user_id;
+
+    // 3. Parse the request body and validate required fields.
     // Expecting: flightId and an array of seatAllocationIds.
     const { flightId, seatAllocationIds } = await request.json();
     if (!flightId || !seatAllocationIds || seatAllocationIds.length === 0) {
@@ -37,10 +55,10 @@ export async function POST(request) {
       );
     }
 
-    // 3. Begin a transaction to ensure data consistency.
+    // 4. Begin a transaction to ensure data consistency.
     await pool.query("BEGIN");
 
-    // 4. Retrieve and lock the selected seat records to prevent concurrent updates.
+    // 5. Retrieve and lock the selected seat records to prevent concurrent updates.
     const seatQuery = `
       SELECT seat_allocation_id, seatnumber, seat_class
       FROM seat_allocation
@@ -57,7 +75,7 @@ export async function POST(request) {
     }
     const seats = seatRes.rows;
 
-    // 5. Dynamic Pricing: Calculate the total price by summing the current price for each seat.
+    // 6. Dynamic Pricing: Calculate the total price by summing the current price for each seat.
     let totalPrice = 0;
     for (const seat of seats) {
       const pricingQuery = `
@@ -80,7 +98,7 @@ export async function POST(request) {
       totalPrice += price;
     }
 
-    // 6. Create the reservation record with the calculated total price.
+    // 7. Create the reservation record with the calculated total price.
     const reservationInsertQuery = `
       INSERT INTO reservations (user_id, flight_id, bookingdate, status, total_price)
       VALUES ($1, $2, NOW(), 'Confirmed', $3)
@@ -93,7 +111,7 @@ export async function POST(request) {
     ]);
     const reservationId = reservationRes.rows[0].reservation_id;
 
-    // 7. Update the seat_allocation records to mark these seats as booked.
+    // 8. Update the seat_allocation records to mark these seats as booked.
     const updateSeatQuery = `
       UPDATE seat_allocation
       SET reservation_id = $1, status = 'booked'
@@ -103,10 +121,10 @@ export async function POST(request) {
 
     // (Optional) You could also insert related tickets or payment records here.
 
-    // 8. Commit the transaction.
+    // 9. Commit the transaction.
     await pool.query("COMMIT");
 
-    // 9. Return the reservation details.
+    // 10. Return the reservation details.
     return NextResponse.json(
       { reservationId, totalPrice },
       { status: 201 }

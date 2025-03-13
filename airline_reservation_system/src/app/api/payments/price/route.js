@@ -16,43 +16,30 @@ export async function GET(request) {
   }
 
   try {
-    let totalPrice = 0;
-    const seatQuery = `
-      SELECT seat_allocation_id, seat_class
-      FROM seat_allocation
-      WHERE seat_allocation_id = ANY($1::int[])
+    const query = `
+      SELECT SUM(p.current_price) AS total_price
+      FROM seat_allocation sa
+      JOIN pricing p ON sa.seat_class = p.seat_class
+      WHERE sa.seat_allocation_id = ANY($1::int[])
+        AND p.flight_id = $2
     `;
-    const seatRes = await pool.query(seatQuery, [seatAllocationIds]);
-    if (seatRes.rows.length !== seatAllocationIds.length) {
+    const result = await pool.query(query, [seatAllocationIds, flightId]);
+    const totalPrice = result.rows[0].total_price;
+    if (totalPrice === null) {
       return new Response(
-        JSON.stringify({ error: "Some selected seats were not found" }),
+        JSON.stringify({ error: "Pricing info not found for selected seats" }),
         { status: 404 }
       );
     }
-    const seats = seatRes.rows;
-
-    for (const seat of seats) {
-      const pricingQuery = `
-        SELECT current_price
-        FROM pricing
-        WHERE flight_id = $1 AND seat_class = $2
-      `;
-      const pricingRes = await pool.query(pricingQuery, [flightId, seat.seat_class]);
-      if (pricingRes.rows.length === 0) {
-        return new Response(
-          JSON.stringify({ error: `Pricing info not found for seat class ${seat.seat_class}` }),
-          { status: 404 }
-        );
-      }
-      const price = parseFloat(pricingRes.rows[0].current_price);
-      totalPrice += price;
-    }
-
-    return new Response(JSON.stringify({ totalPrice }), { status: 200 });
+    return new Response(
+      JSON.stringify({ totalPrice: parseFloat(totalPrice) }),
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error calculating price:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500 }
+    );
   }
 }

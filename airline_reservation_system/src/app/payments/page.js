@@ -65,22 +65,24 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar"; // Adjust the path if needed
+import Navbar from "@/components/Navbar"; // Ensure the path is correct
 
 export default function Payments() {
   const searchParams = useSearchParams();
   const flightId = searchParams.get("flightId");
   const seatIdsParam = searchParams.get("seatIds"); // comma-separated list
+  const priceParam = searchParams.get("price"); // price passed from flight-info
   const seatAllocationIds = seatIdsParam
     ? seatIdsParam.split(",").map(Number)
     : [];
+  // Use the passed price instead of re-fetching it
+  const totalPrice = priceParam ? parseFloat(priceParam) : null;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [reservationId, setReservationId] = useState(null);
-  const [totalPrice, setTotalPrice] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [seatDetails, setSeatDetails] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
 
   // Check login status via the API endpoint.
@@ -120,44 +122,19 @@ export default function Payments() {
     fetchSeatDetails();
   }, [flightId]);
 
-  // Fetch pricing details when flightId or seatAllocationIds change.
-  useEffect(() => {
-    async function fetchPrice() {
-      if (flightId && seatAllocationIds.length > 0) {
-        try {
-          const res = await fetch(
-            `/api/payments?flightId=${flightId}&seatIds=${seatAllocationIds.join(
-              ","
-            )}`
-          );
-          const data = await res.json();
-          if (res.ok) {
-            setTotalPrice(data.totalPrice);
-          } else {
-            setError(data.error || "Failed to fetch price");
-          }
-        } catch (error) {
-          console.error("Error fetching price:", error);
-          setError("Error fetching price");
-        }
-      }
-    }
-    fetchPrice();
-  }, [flightId, seatAllocationIds]);
-
   // Handle the payment process.
   const handlePayment = async () => {
     setLoading(true);
     setError("");
     try {
-      // For simplicity, we assume user_id is 1.
+      // Send POST request to /api/payments with flightId, selected seat IDs, and the computed totalPrice.
       const res = await fetch("/api/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           flightId,
           seatAllocationIds,
-          userId: 1,
+          totalPrice,
         }),
       });
       const data = await res.json();
@@ -165,7 +142,6 @@ export default function Payments() {
         setError(data.error || "Payment failed");
       } else {
         setReservationId(data.reservationId);
-        setTotalPrice(data.totalPrice);
       }
     } catch (err) {
       console.error("Error processing payment", err);
@@ -233,4 +209,3 @@ export default function Payments() {
     </div>
   );
 }
-

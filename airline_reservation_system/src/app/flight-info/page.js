@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar"; // Ensure the path is correct
+import Navbar from "@/components/Navbar"; // Adjust the path if needed
 
 export default function FlightInfo() {
   const [seats, setSeats] = useState([]);
@@ -61,14 +61,20 @@ export default function FlightInfo() {
     }
   };
 
-  // Proceed to payment, passing flightId and selected seat IDs (unchanged route).
+  // Proceed to payment, passing flightId, selected seat IDs, and computed price.
   const proceedToPayment = () => {
     if (selectedSeatIds.length === 0) {
       alert("Please select at least one seat to book.");
       return;
     }
+    if (totalPrice === null) {
+      alert("Price is still calculating. Please wait.");
+      return;
+    }
     router.push(
-      `/payments?flightId=${flightId}&seatIds=${selectedSeatIds.join(",")}`
+      `/payments?flightId=${flightId}&seatIds=${selectedSeatIds.join(
+        ","
+      )}&price=${totalPrice}`
     );
   };
 
@@ -117,13 +123,11 @@ export default function FlightInfo() {
         ) : (
           !error && <p>No seats available for this flight.</p>
         )}
-        {/* Display the seat numbers instead of seat IDs */}
         {selectedSeatIds.length > 0 && (
           <p className="mt-4 text-xl">
             Selected Seats: {selectedSeatNumbers.join(", ")}
           </p>
         )}
-        {/* Display total price based on selection */}
         {selectedSeatIds.length > 0 && (
           <p className="mt-4 text-xl">
             Total Price:{" "}
