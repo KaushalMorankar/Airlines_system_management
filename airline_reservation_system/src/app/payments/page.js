@@ -65,27 +65,28 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar"; // Ensure the path is correct
+import Navbar from "@/components/Navbar";
 
 export default function Payments() {
   const searchParams = useSearchParams();
   const flightId = searchParams.get("flightId");
-  const seatIdsParam = searchParams.get("seatIds"); // comma-separated list
-  const priceParam = searchParams.get("price"); // price passed from flight-info
+  const seatIdsParam = searchParams.get("seatIds"); // comma-separated list of seat allocation IDs
+  const priceParam = searchParams.get("price");
   const seatAllocationIds = seatIdsParam
     ? seatIdsParam.split(",").map(Number)
     : [];
-  // Use the passed price instead of re-fetching it
   const totalPrice = priceParam ? parseFloat(priceParam) : null;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [reservationId, setReservationId] = useState(null);
   const [seatDetails, setSeatDetails] = useState([]);
+  const [passengerDetails, setPassengerDetails] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const router = useRouter();
 
-  // Check login status via the API endpoint.
+  // 1. Check login status
   useEffect(() => {
     async function checkLoginStatus() {
       try {
@@ -100,7 +101,7 @@ export default function Payments() {
     checkLoginStatus();
   }, []);
 
-  // Fetch seat details to obtain seat numbers.
+  // 2. Fetch seat details to retrieve seat numbers.
   useEffect(() => {
     if (!flightId) return;
     async function fetchSeatDetails() {
@@ -122,13 +123,50 @@ export default function Payments() {
     fetchSeatDetails();
   }, [flightId]);
 
-  // Handle the payment process.
+  // 3. Pre-populate passengerDetails with the seat numbers.
+  useEffect(() => {
+    if (seatDetails.length > 0 && seatAllocationIds.length > 0) {
+      const selectedSeats = seatDetails.filter((seat) =>
+        seatAllocationIds.includes(seat.seat_allocation_id)
+      );
+      if (passengerDetails.length === 0) {
+        const initialDetails = selectedSeats.map((seat) => ({
+          full_name: "",
+          passport_number: "",
+          date_of_birth: "",
+          seat_number: seat.seatnumber,
+        }));
+        setPassengerDetails(initialDetails);
+      }
+    }
+  }, [seatDetails, seatAllocationIds, passengerDetails]);
+
+  // Handle form field changes
+  const handlePassengerChange = (index, field, value) => {
+    const newDetails = [...passengerDetails];
+    newDetails[index] = { ...newDetails[index], [field]: value };
+    setPassengerDetails(newDetails);
+  };
+
+  // 4. Payment process + storing passenger details
   const handlePayment = async () => {
+    // Validate passenger fields
+    for (let i = 0; i < passengerDetails.length; i++) {
+      const { full_name, passport_number, date_of_birth, seat_number } =
+        passengerDetails[i];
+      if (!full_name || !passport_number || !date_of_birth || !seat_number) {
+        setError(
+          `Please fill out all details for the passenger for seat number ${passengerDetails[i].seat_number}`
+        );
+        return;
+      }
+    }
+
     setLoading(true);
     setError("");
     try {
-      // Send POST request to /api/payments with flightId, selected seat IDs, and the computed totalPrice.
-      const res = await fetch("/api/payments", {
+      // (A) Process payment
+      const paymentRes = await fetch("/api/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -137,73 +175,167 @@ export default function Payments() {
           totalPrice,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Payment failed");
-      } else {
-        setReservationId(data.reservationId);
+      const paymentData = await paymentRes.json();
+      if (!paymentRes.ok) {
+        setError(paymentData.error || "Payment failed");
+        setLoading(false);
+        return;
       }
+
+      // (B) If payment is successful, store passenger details
+      const newReservationId = paymentData.reservationId;
+      setReservationId(newReservationId);
+
+      const passengersRes = await fetch("/api/passangers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reservationId: newReservationId,
+          passengers: passengerDetails,
+        }),
+      });
+      const passengersData = await passengersRes.json();
+      if (!passengersRes.ok) {
+        setError(passengersData.error || "Error storing passenger details");
+        setLoading(false);
+        return;
+      }
+
+      // (C) Done! We set reservationId, which triggers the success UI.
     } catch (err) {
-      console.error("Error processing payment", err);
+      console.error("Error processing payment:", err);
       setError("Payment processing error");
     } finally {
       setLoading(false);
     }
   };
 
-  // Map selected seat IDs to their corresponding seat numbers.
-  const selectedSeatNumbers = seatDetails
-    .filter((seat) => seatAllocationIds.includes(seat.seat_allocation_id))
-    .map((seat) => seat.seatnumber);
+  // 5. Once reservationId is set, show a success page.
+  if (reservationId) {
+    // Gather seat numbers from passengerDetails
+    const selectedSeatNumbers = passengerDetails
+      .map((p) => p.seat_number)
+      .join(", ");
 
+    return (
+      <div>
+        <Navbar />
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+          <h1 className="text-3xl font-bold mb-4">Payment Page</h1>
+          <p>Flight ID: {flightId}</p>
+          <p>Selected Seats: {selectedSeatNumbers}</p>
+          <p>Total Price: ${totalPrice?.toFixed(2)}</p>
+          <p className="text-green-600 mt-2">Payment successful!</p>
+          <p>Reservation ID: {reservationId}</p>
+          <p>Total Price: ${totalPrice?.toFixed(2)}</p>
+          <button
+            onClick={() => router.push("/")}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Go to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 6. Otherwise, show the payment form
   return (
     <div>
       <Navbar />
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-        <h1 className="text-3xl font-bold mb-4">Payment Page</h1>
+        <h1 className="text-3xl font-bold mb-4">Payment & Passenger Details</h1>
         <p>Flight ID: {flightId}</p>
-        <p>
-          Selected Seats:{" "}
-          {selectedSeatNumbers.length > 0
-            ? selectedSeatNumbers.join(", ")
-            : "Loading..."}
-        </p>
         <p>
           Total Price:{" "}
           {totalPrice ? `$${totalPrice.toFixed(2)}` : "Calculating..."}
         </p>
-        {reservationId ? (
-          <div>
-            <p className="text-green-600">Payment successful!</p>
-            <p>Reservation ID: {reservationId}</p>
-            <p>Total Price: ${totalPrice.toFixed(2)}</p>
-            <button
-              onClick={() => router.push("/")}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              Go to Home
-            </button>
-          </div>
+
+        {/* Passenger Details Form */}
+        <div className="w-full max-w-xl mt-6">
+          <h2 className="text-xl font-semibold mb-4">Passenger Details</h2>
+          {passengerDetails.length > 0 ? (
+            passengerDetails.map((passenger, index) => (
+              <div key={index} className="mb-4 border p-4 rounded">
+                <h3 className="font-semibold mb-2">
+                  Seat Number: {passenger.seat_number}
+                </h3>
+                <div className="mb-2">
+                  <label className="block mb-1">Full Name:</label>
+                  <input
+                    type="text"
+                    placeholder="Enter full name"
+                    value={passenger.full_name}
+                    onChange={(e) =>
+                      handlePassengerChange(index, "full_name", e.target.value)
+                    }
+                    className="border p-2 w-full"
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="block mb-1">Passport Number:</label>
+                  <input
+                    type="text"
+                    placeholder="Enter passport number"
+                    value={passenger.passport_number}
+                    onChange={(e) =>
+                      handlePassengerChange(
+                        index,
+                        "passport_number",
+                        e.target.value
+                      )
+                    }
+                    className="border p-2 w-full"
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="block mb-1">Date of Birth:</label>
+                  <input
+                    type="date"
+                    value={passenger.date_of_birth}
+                    onChange={(e) =>
+                      handlePassengerChange(
+                        index,
+                        "date_of_birth",
+                        e.target.value
+                      )
+                    }
+                    className="border p-2 w-full"
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="block mb-1">Seat Number:</label>
+                  <input
+                    type="text"
+                    value={passenger.seat_number}
+                    disabled
+                    className="border p-2 w-full bg-gray-200"
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>Loading seat details...</p>
+          )}
+        </div>
+
+        {error && <p className="text-red-600 mt-4">{error}</p>}
+
+        {isLoggedIn ? (
+          <button
+            onClick={handlePayment}
+            disabled={loading}
+            className="mt-6 bg-green-600 text-white px-4 py-2 rounded"
+          >
+            {loading ? "Processing..." : "Pay Now"}
+          </button>
         ) : (
-          <div>
-            {error && <p className="text-red-600 mb-4">{error}</p>}
-            {isLoggedIn ? (
-              <button
-                onClick={handlePayment}
-                disabled={loading}
-                className="bg-green-600 text-white px-4 py-2 rounded"
-              >
-                {loading ? "Processing..." : "Pay Now"}
-              </button>
-            ) : (
-              <button
-                onClick={() => router.push("/login")}
-                className="bg-yellow-600 text-white px-4 py-2 rounded"
-              >
-                Login to Pay
-              </button>
-            )}
-          </div>
+          <button
+            onClick={() => router.push("/login")}
+            className="mt-6 bg-yellow-600 text-white px-4 py-2 rounded"
+          >
+            Login to Pay
+          </button>
         )}
       </div>
     </div>
