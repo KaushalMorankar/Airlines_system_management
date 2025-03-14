@@ -62,7 +62,7 @@ export async function POST(request) {
 
     // Lock selected seats for update.
     const seatQuery = `
-      SELECT seat_allocation_id, seatnumber, seat_class
+      SELECT seat_allocation_id, seatnumber, seat_class, status
       FROM seat_allocation
       WHERE seat_allocation_id = ANY($1::int[])
       FOR UPDATE
@@ -77,7 +77,18 @@ export async function POST(request) {
     }
     const seats = seatRes.rows;
 
-    // Use the provided totalPrice (from flight-info / payments page) when creating the reservation.
+    // Check if any seat is already booked.
+    for (const seat of seats) {
+      if (seat.status === "booked") {
+        await pool.query("ROLLBACK");
+        return NextResponse.json(
+          { error: `Seat ${seat.seat_allocation_id} is already booked` },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Create the reservation.
     const insertReservationQuery = `
       INSERT INTO reservations (user_id, flight_id, bookingdate, status, total_price)
       VALUES ($1, $2, NOW(), 'Confirmed', $3)
@@ -111,7 +122,7 @@ export async function POST(request) {
       ]);
     }
 
-    // Optionally update pricing (e.g., increase demand factor).
+    // Optionally update pricing for each seat.
     for (const seat of seats) {
       const updatePricingQuery = `
         UPDATE pricing
@@ -135,6 +146,7 @@ export async function POST(request) {
     ]);
     const payment = paymentRes.rows[0];
 
+    // Commit the transaction.
     await pool.query("COMMIT");
     return NextResponse.json(
       { reservationId, totalPrice, payment },
