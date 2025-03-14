@@ -99,7 +99,7 @@ export async function POST(request) {
     // Update the seat allocation: free up seats (or mark them as cancelled/available).
     const updateSeatsQuery = `
       UPDATE seat_allocation
-      SET reservation_id = NULL, status = 'available'
+      SET reservation_id = NULL, status = 'not booked'
       WHERE reservation_id = $1
     `;
     await pool.query(updateSeatsQuery, [reservationId]);
