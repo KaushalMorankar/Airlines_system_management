@@ -258,7 +258,7 @@ export default function BookFlight() {
                     {/* Airline logo placeholder */}
                     <div className="mr-3">
                       <img
-                        src="/airline-logo.png"
+                        src="/istockphoto-1258141375-612x612.jpg"
                         alt="Airline Logo"
                         className="w-12 h-12 object-contain"
                       />
