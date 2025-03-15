@@ -166,80 +166,82 @@
 
 
   import { NextResponse } from 'next/server';
-  import pool from '@/lib/db';
-  
-  export async function GET(request) {
-    const { searchParams } = new URL(request.url);
-    const departureCity = searchParams.get("departureCity");
-    const destinationCity = searchParams.get("destinationCity");
-    const flightDateParam = searchParams.get("flightDate");
-  
-    if (!departureCity || !destinationCity) {
-      return NextResponse.json(
-        { error: "Both departure and destination cities are required" },
-        { status: 400 }
-      );
-    }
-  
-    const flightDate = flightDateParam
-      ? flightDateParam
-      : new Date().toISOString().split("T")[0];
-  
-    try {
-      const depRes = await pool.query(
-        "SELECT airport_id FROM airports WHERE city = $1",
-        [departureCity]
-      );
-      if (depRes.rows.length === 0) {
-        return NextResponse.json(
-          { error: "Departure airport not found" },
-          { status: 404 }
-        );
-      }
-      const departureAirportId = depRes.rows[0].airport_id;
-  
-      const destRes = await pool.query(
-        "SELECT airport_id FROM airports WHERE city = $1",
-        [destinationCity]
-      );
-      if (destRes.rows.length === 0) {
-        return NextResponse.json(
-          { error: "Destination airport not found" },
-          { status: 404 }
-        );
-      }
-      const destinationAirportId = destRes.rows[0].airport_id;
-  
-      const flightsRes = await pool.query(
-        `SELECT f.*, 
-                (
-                  SELECT json_agg(json_build_object(
-                    'seat_class', p.seat_class,
-                    'base_price', p.base_price,
-                    'current_price', p.current_price,
-                    'demand_factor', p.demand_factor
-                  ))
-                  FROM pricing p
-                  WHERE p.flight_id = f.flight_id
-                ) AS pricing_info
-         FROM get_flights_for_date_no_aircraft($1, $2, $3::date, 4) f;`,
-        [departureAirportId, destinationAirportId, flightDate]
-      );
-  
-      if (flightsRes.rows.length === 0) {
-        return NextResponse.json(
-          { error: "No flights available for this route on the given date" },
-          { status: 404 }
-        );
-      }
-  
-      return NextResponse.json({ flights: flightsRes.rows }, { status: 200 });
-    } catch (error) {
-      console.error("Error fetching flight schedule:", error);
-      return NextResponse.json(
-        { error: "Internal server error" },
-        { status: 500 }
-      );
-    }
+import pool from '@/lib/db';
+
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const departureCity = searchParams.get("departureCity");
+  const destinationCity = searchParams.get("destinationCity");
+  const flightDateParam = searchParams.get("flightDate");
+
+  if (!departureCity || !destinationCity) {
+    return NextResponse.json(
+      { error: "Both departure and destination cities are required" },
+      { status: 400 }
+    );
   }
-   
+
+  const flightDate = flightDateParam
+    ? flightDateParam
+    : new Date().toISOString().split("T")[0];
+
+  try {
+    // Get departure airport_id
+    const depRes = await pool.query(
+      "SELECT airport_id FROM airports WHERE city = $1",
+      [departureCity]
+    );
+    if (depRes.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Departure airport not found" },
+        { status: 404 }
+      );
+    }
+    const departureAirportId = depRes.rows[0].airport_id;
+
+    // Get destination airport_id
+    const destRes = await pool.query(
+      "SELECT airport_id FROM airports WHERE city = $1",
+      [destinationCity]
+    );
+    if (destRes.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Destination airport not found" },
+        { status: 404 }
+      );
+    }
+    const destinationAirportId = destRes.rows[0].airport_id;
+
+    // Retrieve flights along with pricing info
+    const flightsRes = await pool.query(
+      `SELECT f.*, 
+              (
+                SELECT json_agg(json_build_object(
+                  'seat_class', p.seat_class,
+                  'base_price', p.base_price,
+                  'current_price', p.current_price,
+                  'demand_factor', p.demand_factor
+                ))
+                FROM pricing p
+                WHERE p.flight_id = f.flight_id
+              ) AS pricing_info
+       FROM get_flights_for_date_no_aircraft($1, $2, $3::date, 4) f;`,
+      [departureAirportId, destinationAirportId, flightDate]
+    );
+
+    if (flightsRes.rows.length === 0) {
+      return NextResponse.json(
+        { error: "No flights available for this route on the given date" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ flights: flightsRes.rows }, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching flight schedule:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

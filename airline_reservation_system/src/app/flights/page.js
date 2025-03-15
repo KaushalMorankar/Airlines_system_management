@@ -1,7 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar"; // Ensure the path is correct
+import Navbar from "@/components/Navbar"; // Update path if necessary
+
+// Utility function to compute flight duration in "Xh Ym" format
+function computeDuration(departure, arrival) {
+  const dep = new Date(departure);
+  const arr = new Date(arrival);
+  const diffMs = arr - dep; // in milliseconds
+  if (isNaN(diffMs) || diffMs < 0) return ""; // handle invalid or negative times
+  const diffMins = Math.floor(diffMs / 60000);
+  const hours = Math.floor(diffMins / 60);
+  const mins = diffMins % 60;
+  return `${hours}h ${mins}m`;
+}
 
 export default function BookFlight() {
   const [departureQuery, setDepartureQuery] = useState("");
@@ -110,155 +122,231 @@ export default function BookFlight() {
   };
 
   return (
-     <div> 
-      <Navbar/>
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-12 px-4">
-      <h1 className="text-3xl font-bold mb-6">Book Your Flight</h1>
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
-      >
-        {/* Departure City Input with Autocomplete */}
-        <div className="mb-4 relative">
-          <label className="block text-gray-700 mb-2">Departure City:</label>
-          <input
-            type="text"
-            value={departureQuery}
-            onChange={(e) => {
-              setDepartureQuery(e.target.value);
-              setSelectedDeparture("");
-            }}
-            placeholder="Enter departure city"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-            autoComplete="off"
-          />
-          {departureSuggestions.length > 0 && (
-            <ul className="absolute z-10 bg-white border rounded-md w-full mt-1 max-h-48 overflow-y-auto">
-              {departureSuggestions.map((airport) => (
-                <li
-                  key={airport.airport_id}
-                  onClick={() => {
-                    setSelectedDeparture(airport.city);
-                    setDepartureQuery(airport.city);
-                    setDepartureSuggestions([]);
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      {/* Hero Section */}
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-600 py-12">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-white text-4xl font-bold">
+            Find Your Perfect Flight
+          </h1>
+          <p className="text-white mt-4 text-lg">
+            Book flights easily and quickly at the best prices
+          </p>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-10">
+        {/* Search Form */}
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6">
+              <label className="block text-gray-700 font-semibold mb-2">
+                Departure City:
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={departureQuery}
+                  onChange={(e) => {
+                    setDepartureQuery(e.target.value);
+                    setSelectedDeparture("");
                   }}
-                  className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
-                >
-                  {airport.city} - {airport.name}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Destination City Input with Autocomplete */}
-        <div className="mb-4 relative">
-          <label className="block text-gray-700 mb-2">
-            Destination City:
-          </label>
-          <input
-            type="text"
-            value={destinationQuery}
-            onChange={(e) => {
-              setDestinationQuery(e.target.value);
-              setSelectedDestination("");
-            }}
-            placeholder="Enter destination city"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-            autoComplete="off"
-          />
-          {destinationSuggestions.length > 0 && (
-            <ul className="absolute z-10 bg-white border rounded-md w-full mt-1 max-h-48 overflow-y-auto">
-              {destinationSuggestions.map((airport) => (
-                <li
-                  key={airport.airport_id}
-                  onClick={() => {
-                    setSelectedDestination(airport.city);
-                    setDestinationQuery(airport.city);
-                    setDestinationSuggestions([]);
-                  }}
-                  className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
-                >
-                  {airport.city} - {airport.name}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Flight Date */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Flight Date:</label>
-          <input
-            type="date"
-            value={flightDate}
-            onChange={(e) => setFlightDate(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-        >
-          Search Flights
-        </button>
-      </form>
-
-      {error && <p className="text-red-600 mt-4">{error}</p>}
-
-      {flights.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-md mt-8 w-full max-w-md">
-          <h2 className="text-2xl font-semibold mb-4">Available Flights</h2>
-          <ul>
-            {flights.map((flight) => (
-              <li key={flight.flight_id} className="mb-4 border-b pb-2">
-                <p>
-                  <span className="font-bold">Flight Number:</span>{" "}
-                  {flight.flight_id}
-                </p>
-                <p>
-                  <span className="font-bold">Departure Time:</span>{" "}
-                  {new Date(flight.scheduled_departure_time).toLocaleString()}
-                </p>
-                <p>
-                  <span className="font-bold">Arrival Time:</span>{" "}
-                  {new Date(flight.scheduled_arrival_time).toLocaleString()}
-                </p>
-                <p>
-                  <span className="font-bold">Status:</span> {flight.status}
-                </p>
-                {flight.pricing_info && (
-                  <ul className="mt-2">
-                    {flight.pricing_info.map((price, idx) => (
-                      <li key={idx} className="text-sm">
-                        <span className="font-bold">Class:</span> {price.seat_class} |{" "}
-                        <span className="font-bold">Base Price:</span> {price.base_price} |{" "}
-                        <span className="font-bold">Current Price:</span> {price.current_price} |{" "}
-                        <span className="font-bold">Demand Factor:</span> {price.demand_factor}
+                  placeholder="Enter departure city"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoComplete="off"
+                />
+                {departureSuggestions.length > 0 && (
+                  <ul className="absolute z-10 bg-white border border-gray-300 rounded-md w-full mt-1 max-h-48 overflow-y-auto">
+                    {departureSuggestions.map((airport) => (
+                      <li
+                        key={airport.airport_id}
+                        onClick={() => {
+                          setSelectedDeparture(airport.city);
+                          setDepartureQuery(airport.city);
+                          setDepartureSuggestions([]);
+                        }}
+                        className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+                      >
+                        {airport.city} - {airport.name}
                       </li>
                     ))}
                   </ul>
                 )}
-                {/* Book Now button navigates to the flight-info page */}
-                <button
-                  onClick={() =>
-                    router.push(`/flight-info?flightId=${flight.flight_id}`)
-                  }
-                  className="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-                >
-                  Book Now
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+              </div>
+            </div>
 
-      {!error && flights.length === 0 && (
-        <p className="mt-4 text-gray-600">No flights found for these cities.</p>
-      )}
-    </div>
+            <div className="mb-6">
+              <label className="block text-gray-700 font-semibold mb-2">
+                Destination City:
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={destinationQuery}
+                  onChange={(e) => {
+                    setDestinationQuery(e.target.value);
+                    setSelectedDestination("");
+                  }}
+                  placeholder="Enter destination city"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoComplete="off"
+                />
+                {destinationSuggestions.length > 0 && (
+                  <ul className="absolute z-10 bg-white border border-gray-300 rounded-md w-full mt-1 max-h-48 overflow-y-auto">
+                    {destinationSuggestions.map((airport) => (
+                      <li
+                        key={airport.airport_id}
+                        onClick={() => {
+                          setSelectedDestination(airport.city);
+                          setDestinationQuery(airport.city);
+                          setDestinationSuggestions([]);
+                        }}
+                        className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+                      >
+                        {airport.city} - {airport.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-gray-700 font-semibold mb-2">
+                Flight Date:
+              </label>
+              <input
+                type="date"
+                value={flightDate}
+                onChange={(e) => setFlightDate(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition"
+            >
+              Search Flights
+            </button>
+          </form>
+          {error && <p className="text-red-600 mt-4 text-center">{error}</p>}
+        </div>
+
+        {/* Flights Display */}
+        {flights.length > 0 && (
+          <div className="mt-10 max-w-4xl mx-auto space-y-4">
+            <h2 className="text-2xl font-semibold mb-6 text-center">
+              Available Flights
+            </h2>
+            {flights.map((flight) => {
+              // Calculate duration
+              const duration = computeDuration(
+                flight.scheduled_departure_time,
+                flight.scheduled_arrival_time
+              );
+
+              return (
+                <div
+                  key={flight.flight_id}
+                  className="flex flex-col md:flex-row items-center md:items-stretch justify-between bg-white rounded-lg shadow-md p-4"
+                >
+                  {/* Airline/Flight Info & On-Time */}
+                  <div className="flex items-center md:w-1/5 border-b md:border-b-0 md:border-r md:pr-4 mb-4 md:mb-0">
+                    {/* Airline logo placeholder */}
+                    <div className="mr-3">
+                      <img
+                        src="/airline-logo.png"
+                        alt="Airline Logo"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">
+                        {flight.airline_name || "Airline"} {flight.flight_number}
+                      </p>
+                      {/* Example on-time or rating info */}
+                      <p className="text-sm text-green-700">98% on time</p>
+                    </div>
+                  </div>
+
+                  {/* Timing & Route Info */}
+                  <div className="flex flex-col md:flex-row md:w-3/5 items-center justify-around">
+                    {/* Departure */}
+                    <div className="text-center mb-2 md:mb-0">
+                      <p className="text-xl font-semibold">
+                        {new Date(flight.scheduled_departure_time).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                      <p className="text-gray-500 text-sm">
+                        {flight.departure_city || "Departure"}
+                      </p>
+                    </div>
+
+                    {/* Duration & Non-stop Info */}
+                    <div className="text-center mb-2 md:mb-0">
+                      <p className="text-sm text-gray-600">{duration}</p>
+                      <p className="text-xs text-gray-400">
+                        {flight.non_stop ? "Non-stop" : "1+ stops"}
+                      </p>
+                    </div>
+
+                    {/* Arrival */}
+                    <div className="text-center">
+                      <p className="text-xl font-semibold">
+                        {new Date(flight.scheduled_arrival_time).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                      <p className="text-gray-500 text-sm">
+                        {flight.destination_city || "Arrival"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Price & Actions */}
+                  <div className="md:w-1/5 flex flex-col justify-between text-right">
+                    {/* Display all seat_class prices */}
+                    {flight.pricing_info && flight.pricing_info.length > 0 ? (
+                      flight.pricing_info.map((p) => (
+                        <div key={p.seat_class} className="mb-2">
+                          <p className="text-lg font-bold text-blue-700 capitalize">
+                            {p.seat_class}: ₹ {p.current_price}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xl font-bold text-blue-700">
+                        Price Unavailable
+                      </p>
+                    )}
+
+                    <button
+                      onClick={() =>
+                        router.push(`/flight-info?flightId=${flight.flight_id}`)
+                      }
+                      className="bg-blue-600 text-white py-2 px-3 rounded-md mt-2 hover:bg-blue-700 transition"
+                    >
+                      View Prices
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {!error && flights.length === 0 && (
+          <p className="mt-8 text-center text-gray-600">
+            No flights found for these cities.
+          </p>
+        )}
+      </main>
     </div>
   );
 }
