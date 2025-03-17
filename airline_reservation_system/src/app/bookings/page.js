@@ -1,6 +1,7 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar"; // Adjust the path if needed
+import Navbar from "@/components/Navbar";
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState([]);
@@ -11,22 +12,20 @@ export default function BookingsPage() {
       try {
         const response = await fetch("/api/bookings");
         const data = await response.json();
-
         if (response.ok) {
           setBookings(data.bookings);
         } else {
           setError(data.error || "Error fetching bookings");
         }
-      } catch (error) {
-        console.error("Error fetching bookings", error);
+      } catch (err) {
+        console.error("Error fetching bookings", err);
         setError("Failed to load bookings");
       }
     }
     fetchBookings();
   }, []);
 
-  // Function to cancel a booking.
-  // Here, we are passing the total price as the refund amount for simplicity.
+  // Function to cancel a booking. Here, we pass the total price as the refund amount for simplicity.
   const cancelBooking = async (reservationId, refundAmount) => {
     try {
       const response = await fetch("/api/reservations/cancel", {
@@ -40,7 +39,9 @@ export default function BookingsPage() {
       if (!response.ok) {
         alert("Cancellation failed: " + (data.error || "Unknown error"));
       } else {
-        alert("Cancellation successful. Refund processed. Refund ID: " + data.refundId);
+        alert(
+          "Cancellation successful. Refund processed. Refund ID: " + data.refundId
+        );
         // Optionally update the UI for the cancelled booking.
         setBookings((prev) =>
           prev.map((booking) =>
@@ -50,8 +51,8 @@ export default function BookingsPage() {
           )
         );
       }
-    } catch (error) {
-      console.error("Error cancelling booking", error);
+    } catch (err) {
+      console.error("Error cancelling booking", err);
       alert("Error cancelling booking. Please try again later.");
     }
   };
@@ -79,25 +80,39 @@ export default function BookingsPage() {
                 <div>
                   <strong>Total Price:</strong> {booking.total_price}
                 </div>
-                <div>
-                  <strong>Departure Airport:</strong>{" "}
-                  {booking.departure_airport_id}
-                </div>
-                <div>
-                  <strong>Arrival Airport:</strong>{" "}
-                  {booking.arrival_airport_id}
-                </div>
-                <div>
-                  <strong>Scheduled Departure:</strong>{" "}
-                  {new Date(
-                    booking.scheduled_departure_time
-                  ).toLocaleString()}
-                </div>
-                <div>
-                  <strong>Scheduled Arrival:</strong>{" "}
-                  {new Date(booking.scheduled_arrival_time).toLocaleString()}
-                </div>
-                {/* Render the cancel button if the booking is not already cancelled */}
+                {booking.flights && booking.flights.length > 0 && (
+                  <div className="mt-2">
+                    <strong>Flights:</strong>
+                    <ul>
+                      {booking.flights.map((flight, index) => (
+                        <li key={index} className="mt-1">
+                          <div>
+                            <strong>Flight ID:</strong> {flight.flight_id} (Leg{" "}
+                            {flight.flight_order})
+                          </div>
+                          <div>
+                            <strong>Departure Airport:</strong>{" "}
+                            {flight.departure_airport_id}
+                          </div>
+                          <div>
+                            <strong>Arrival Airport:</strong>{" "}
+                            {flight.arrival_airport_id}
+                          </div>
+                          <div>
+                            <strong>Departure Time:</strong>{" "}
+                            {new Date(
+                              flight.scheduled_departure_time
+                            ).toLocaleString()}
+                          </div>
+                          <div>
+                            <strong>Arrival Time:</strong>{" "}
+                            {new Date(flight.scheduled_arrival_time).toLocaleString()}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {booking.status !== "Cancelled" && (
                   <button
                     className="mt-2 px-4 py-2 bg-red-500 text-white rounded"
