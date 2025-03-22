@@ -18,7 +18,7 @@ export default function Home() {
 
         {/* Optional faint world map (centered behind the text) */}
         <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-          <img src="/map.png" alt="World Map" className="w-2/3 opacity-10" />
+          <img src="/map.png" alt="World Map" className="w-2/3 opacity-75" />
         </div>
 
         {/* Content container */}
