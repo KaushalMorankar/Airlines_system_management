@@ -108,10 +108,10 @@ export default function BookingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-300 text-white">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-extrabold text-center mb-8">My Bookings</h1>
+        <h1 className="text-3xl font-extrabold text-center mb-8 text-black">My Bookings</h1>
 
         {error && <p className="text-red-400 text-center mb-4">{error}</p>}
 
@@ -121,7 +121,7 @@ export default function BookingsPage() {
             className={`${
               activeTab === "UPCOMING"
                 ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-300"
+                : "text-gray-600"
             } pb-1 font-semibold`}
             onClick={() => setActiveTab("UPCOMING")}
           >
@@ -131,7 +131,7 @@ export default function BookingsPage() {
             className={`${
               activeTab === "CANCELLED"
                 ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-300"
+                : "text-gray-600"
             } pb-1 font-semibold`}
             onClick={() => setActiveTab("CANCELLED")}
           >
@@ -141,7 +141,7 @@ export default function BookingsPage() {
             className={`${
               activeTab === "COMPLETED"
                 ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-300"
+                : "text-gray-600"
             } pb-1 font-semibold`}
             onClick={() => setActiveTab("COMPLETED")}
           >
@@ -156,8 +156,8 @@ export default function BookingsPage() {
               const lastFlight =
                 booking.flights?.[booking.flights.length - 1];
 
-              const fromAirport = firstFlight?.departure_airport_id ?? "—";
-              const toAirport = lastFlight?.arrival_airport_id ?? "—";
+                const fromAirport = firstFlight?.departure_iata ?? "—";
+                const toAirport = lastFlight?.arrival_iata ?? "—";
               const departureTime = formatDate(
                 firstFlight?.scheduled_departure_time
               );
@@ -170,7 +170,7 @@ export default function BookingsPage() {
               return (
                 <div
                   key={booking.reservation_id}
-                  className="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-800 p-6 rounded-lg shadow"
+                  className="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-400 p-6 rounded-lg shadow"
                 >
                   {/* LEFT SIDE: minimal summary */}
                   <div className="flex-1">
@@ -279,11 +279,11 @@ export default function BookingsPage() {
                   </div>
                   <div>
                     <strong>Departure Airport:</strong>{" "}
-                    {flight.departure_airport_id}
+                    {flight.departure_city} ({flight.departure_iata})
                   </div>
                   <div>
                     <strong>Arrival Airport:</strong>{" "}
-                    {flight.arrival_airport_id}
+                    {flight.arrival_city} ({flight.arrival_iata})
                   </div>
                   <div>
                     <strong>Departure Time:</strong>{" "}

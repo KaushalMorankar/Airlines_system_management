@@ -29,20 +29,20 @@ export default function Home() {
               Hi, <span className="text-blue-600">where</span> would you like to go?
             </h1>
             <p className="text-gray-600 mb-6">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean placerat nisl quis convallis ullamcorper.
+              Get offers and book now where and whenever you want to go....
             </p>
             {/* Buttons wrapped with Link */}
             <div className="flex gap-4">
               <Link href="/flights" legacyBehavior>
                 <a>
-                  <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">
+                  <button className="bg-blue-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-700 transform hover:scale-110 transition duration-200 ease-in-out">
                     Book Now
                   </button>
                 </a>
               </Link>
               <Link href="/bookings" legacyBehavior>
                 <a>
-                  <button className="bg-gray-600 text-white px-6 py-3 rounded-md hover:bg-gray-700 transition">
+                  <button className="bg-gray-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-gray-700 transform hover:scale-110 transition duration-200 ease-in-out">
                     My Bookings
                   </button>
                 </a>

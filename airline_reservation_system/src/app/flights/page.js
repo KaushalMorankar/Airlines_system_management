@@ -654,7 +654,7 @@ export default function BookFlight() {
                     <div className="text-center mb-2 md:mb-0">
                       <p className="text-sm text-gray-600">{duration}</p>
                       <p className="text-xs text-gray-400">
-                        {flight.non_stop ? "Non-stop" : "1+ stops"}
+                        {"Non-stop"}
                       </p>
                     </div>
                     <div className="text-center">
@@ -674,30 +674,27 @@ export default function BookFlight() {
 
                   {/* Price & Actions */}
                   <div className="md:w-1/5 flex flex-col justify-between text-right">
-                    {flight.pricing_info &&
-                    flight.pricing_info.length > 0 ? (
+                    {flight.pricing_info && flight.pricing_info.length > 0 ? (
                       flight.pricing_info.map((p) => (
                         <div key={p.seat_class} className="mb-2">
-                          <p className="text-lg font-bold text-blue-700 capitalize">
+                          <p className="block text-l font-bold text-blue-400">
                             {p.seat_class}: ₹ {p.current_price}
                           </p>
                         </div>
                       ))
                     ) : (
-                      <p className="text-xl font-bold text-blue-700">
+                      <p className="text-l font-bold text-blue-700">
                         Price Unavailable
                       </p>
                     )}
 
                     <button
                       onClick={() =>
-                        router.push(
-                          `/flight-info?flightId=${flight.flight_id}`
-                        )
+                        router.push(`/flight-info?flightId=${flight.flight_id}`)
                       }
-                      className="bg-blue-600 text-white py-2 px-3 rounded-md mt-2 hover:bg-blue-700 transition"
+                      className="bg-blue-600 text-white py-2 px-2 rounded-md mt-2 hover:bg-blue-700 transition"
                     >
-                      View Prices
+                      Select
                     </button>
                   </div>
                 </div>
@@ -712,151 +709,276 @@ export default function BookFlight() {
             <h2 className="text-2xl font-semibold mb-6 text-center">
               Connecting Flights (1 Stop)
             </h2>
-            {connectingItineraries.map((itinerary) => (
-              <div
-                key={`${itinerary.first_flight_id}-${itinerary.second_flight_id}`}
-                className="bg-white rounded-lg shadow-md p-4 mb-4"
-              >
-                <p className="font-bold mb-1">
-                  First Leg: Flight {itinerary.first_flight_id} – Departs at{" "}
-                  {new Date(itinerary.first_departure).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p className="mb-1">
-                  Arrives at:{" "}
-                  {new Date(itinerary.first_arrival).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p className="font-bold mt-2 mb-1">
-                  Second Leg: Flight {itinerary.second_flight_id} – Departs at{" "}
-                  {new Date(itinerary.second_departure).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p>
-                  Arrives at:{" "}
-                  {new Date(itinerary.second_arrival).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <div className="flex justify-end mt-4">
-                  <button
-                    onClick={() =>
-                      router.push(
-                        `/flight-info?flightId=${itinerary.first_flight_id}&secondFlightId=${itinerary.second_flight_id}`
-                      )
-                    }
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
-                  >
-                    View Prices
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Fallback: Display previous flights if itineraries not returned */}
-        {flights.length > 0 && directItineraries.length === 0 && connectingItineraries.length === 0 && (
-          <div className="mt-10 max-w-4xl mx-auto space-y-4">
-            <h2 className="text-2xl font-semibold mb-6 text-center">
-              Available Flights
-            </h2>
-            {flights.map((flight) => {
-              const duration = computeDuration(
-                flight.scheduled_departure_time,
-                flight.scheduled_arrival_time
+            {connectingItineraries.map((itinerary) => {
+              // Compute durations for each leg
+              const firstLegDuration = computeDuration(
+                itinerary.first_departure,
+                itinerary.first_arrival
               );
+              const secondLegDuration = computeDuration(
+                itinerary.second_departure,
+                itinerary.second_arrival
+              );
+
+              // Format times for display
+              const firstDepartureTime = new Date(
+                itinerary.first_departure
+              ).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const firstArrivalTime = new Date(
+                itinerary.first_arrival
+              ).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const secondDepartureTime = new Date(
+                itinerary.second_departure
+              ).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const secondArrivalTime = new Date(
+                itinerary.second_arrival
+              ).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
               return (
                 <div
-                  key={flight.flight_id}
-                  className="flex flex-col md:flex-row items-center md:items-stretch justify-between bg-white rounded-lg shadow-md p-4"
+                  key={`${itinerary.first_flight_id}-${itinerary.second_flight_id}`}
+                  className="bg-white texxt-black rounded-lg shadow-md p-4 mb-4"
                 >
-                  <div className="flex items-center md:w-1/5 border-b md:border-b-0 md:border-r md:pr-4 mb-4 md:mb-0">
-                    <div className="mr-3">
-                      <img
-                        src="/istockphoto-1258141375-612x612.jpg"
-                        alt="Airline Logo"
-                        className="w-12 h-12 object-contain"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold">
-                        {flight.airline_name || "Airline"} {flight.flight_number}
-                      </p>
-                      <p className="text-sm text-green-700">98% on time</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col md:flex-row md:w-3/5 items-center justify-around">
-                    <div className="text-center mb-2 md:mb-0">
-                      <p className="text-xl font-semibold">
-                        {new Date(flight.scheduled_departure_time).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                      <p className="text-gray-500 text-sm">
-                        {flight.departure_city || "Departure"}
-                      </p>
-                    </div>
-
-                    <div className="text-center mb-2 md:mb-0">
-                      <p className="text-sm text-gray-600">{duration}</p>
-                      <p className="text-xs text-gray-400">
-                        {flight.non_stop ? "Non-stop" : "1+ stops"}
-                      </p>
-                    </div>
-
-                    <div className="text-center">
-                      <p className="text-xl font-semibold">
-                        {new Date(flight.scheduled_arrival_time).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                      <p className="text-gray-500 text-sm">
-                        {flight.destination_city || "Arrival"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="md:w-1/5 flex flex-col justify-between text-right">
-                    {flight.pricing_info &&
-                    flight.pricing_info.length > 0 ? (
-                      flight.pricing_info.map((p) => (
-                        <div key={p.seat_class} className="mb-2">
-                          <p className="text-lg font-bold text-blue-700 capitalize">
-                            {p.seat_class}: ₹ {p.current_price}
-                          </p>
+                  {/* Two-column layout: Left = flight details, Right = price + action */}
+                  <div className="flex flex-col md:flex-row">
+                    {/* LEFT: Two flight legs stacked */}
+                    <div className="md:flex-1">
+                      {/* First Leg */}
+                      <div className="flex flex-col md:flex-row items-center justify-between">
+                        {/* Airline + Departure */}
+                        <div className="flex items-center space-x-4 mb-4 md:mb-0">
+                          <img
+                            src="/istockphoto-1258141375-612x612.jpg"
+                            alt="Airline Logo"
+                            className="w-12 h-12 object-contain"
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-lg font-bold">
+                              {firstDepartureTime}
+                            </span>
+                            <span className="text-sm text-gray-300">
+                              {itinerary.first_departure_airport_code || "Depart"}
+                            </span>
+                          </div>
                         </div>
-                      ))
-                    ) : (
-                      <p className="text-xl font-bold text-blue-700">
-                        Price Unavailable
-                      </p>
-                    )}
 
-                    <button
-                      onClick={() =>
-                        router.push(`/flight-info?flightId=${flight.flight_id}`)
-                      }
-                      className="bg-blue-600 text-white py-2 px-3 rounded-md mt-2 hover:bg-blue-700 transition"
-                    >
-                      View Prices
-                    </button>
+                        {/* Duration + "Direct" or "1 Stop" */}
+                        <div className="flex flex-col items-center mb-4 md:mb-0">
+                          <span className="text-sm">{firstLegDuration}</span>
+                          <span className="text-xs text-gray-400">
+                            {itinerary.first_non_stop ? "Direct" : "1+ stops"}
+                          </span>
+                        </div>
+
+                        {/* Arrival */}
+                        <div className="flex flex-col text-right">
+                          <span className="text-lg font-bold">
+                            {firstArrivalTime}
+                          </span>
+                          <span className="text-sm text-gray-300">
+                            {itinerary.first_arrival_airport_code || "Arrival"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Separator */}
+                      <hr className="my-4 border-gray-700" />
+
+                      {/* Second Leg */}
+                      <div className="flex flex-col md:flex-row items-center justify-between">
+                        {/* Airline + Departure */}
+                        <div className="flex items-center space-x-4 mb-4 md:mb-0">
+                          <img
+                            src="/istockphoto-1258141375-612x612.jpg"
+                            alt="Airline Logo"
+                            className="w-12 h-12 object-contain"
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-lg font-bold">
+                              {secondDepartureTime}
+                            </span>
+                            <span className="text-sm text-gray-300">
+                              {itinerary.second_departure_airport_code || "Depart"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Duration + "Direct" or "1 Stop" */}
+                        <div className="flex flex-col items-center mb-4 md:mb-0">
+                          <span className="text-sm">{secondLegDuration}</span>
+                          <span className="text-xs text-gray-400">
+                            {itinerary.second_non_stop ? "Direct" : "1+ stops"}
+                          </span>
+                        </div>
+
+                        {/* Arrival */}
+                        <div className="flex flex-col text-right">
+                          <span className="text-lg font-bold">
+                            {secondArrivalTime}
+                          </span>
+                          <span className="text-sm text-gray-300">
+                            {itinerary.second_arrival_airport_code || "Arrival"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Price & Actions */}
+                    <div className="md:w-1/4 flex flex-col items-end justify-center md:pl-4 mt-4 md:mt-0">
+                      {itinerary.pricing_info_first &&
+                        itinerary.pricing_info_first.length > 0 &&
+                        itinerary.pricing_info_second &&
+                        itinerary.pricing_info_second.length > 0 ? (
+                        (() => {
+                          // Calculate the lowest available price for each leg
+                          const firstPrices = itinerary.pricing_info_first.map(p => p.current_price);
+                          const secondPrices = itinerary.pricing_info_second.map(p => p.current_price);
+                          const minCombined = Math.min(...firstPrices) + Math.min(...secondPrices);
+                          return (
+                            <>
+                              <span className="text-sm text-blue-400">Minimum Price</span>
+                              <span className="block text-l font-bold text-blue-400">
+                                ₹{minCombined} 
+                              </span>
+                              <span className="text-sm text-gray-400">2 bookings required</span>
+                            </>
+                          );
+                        })()
+                      ) : (
+                        <p className="text-xl font-bold text-blue-700">Price Unavailable</p>
+                      )}
+
+                      <button
+                        onClick={() =>
+                          router.push(
+                            `/flight-info?flightId=${itinerary.first_flight_id}&secondFlightId=${itinerary.second_flight_id}`
+                          )
+                        }
+                        className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                      >
+                        Select
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
         )}
+
+        {/* Fallback: Display previous flights if itineraries not returned */}
+        {flights.length > 0 &&
+          directItineraries.length === 0 &&
+          connectingItineraries.length === 0 && (
+            <div className="mt-10 max-w-4xl mx-auto space-y-4">
+              <h2 className="text-2xl font-semibold mb-6 text-center">
+                Available Flights
+              </h2>
+              {flights.map((flight) => {
+                const duration = computeDuration(
+                  flight.scheduled_departure_time,
+                  flight.scheduled_arrival_time
+                );
+                return (
+                  <div
+                    key={flight.flight_id}
+                    className="flex flex-col md:flex-row items-center md:items-stretch justify-between bg-white rounded-lg shadow-md p-4"
+                  >
+                    <div className="flex items-center md:w-1/5 border-b md:border-b-0 md:border-r md:pr-4 mb-4 md:mb-0">
+                      <div className="mr-3">
+                        <img
+                          src="/istockphoto-1258141375-612x612.jpg"
+                          alt="Airline Logo"
+                          className="w-12 h-12 object-contain"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold">
+                          {flight.airline_name || "Airline"}{" "}
+                          {flight.flight_number}
+                        </p>
+                        <p className="text-sm text-green-700">98% on time</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row md:w-3/5 items-center justify-around">
+                      <div className="text-center mb-2 md:mb-0">
+                        <p className="text-xl font-semibold">
+                          {new Date(
+                            flight.scheduled_departure_time
+                          ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <p className="text-gray-500 text-sm">
+                          {flight.departure_city || "Departure"}
+                        </p>
+                      </div>
+
+                      <div className="text-center mb-2 md:mb-0">
+                        <p className="text-sm text-gray-600">{duration}</p>
+                        <p className="text-xs text-gray-400">
+                          {"Non-stop"}
+                        </p>
+                      </div>
+
+                      <div className="text-center">
+                        <p className="text-xl font-semibold">
+                          {new Date(
+                            flight.scheduled_arrival_time
+                          ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <p className="text-gray-500 text-sm">
+                          {flight.destination_city || "Arrival"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="md:w-1/5 flex flex-col justify-between text-right">
+                      {flight.pricing_info && flight.pricing_info.length > 0 ? (
+                        flight.pricing_info.map((p) => (
+                          <div key={p.seat_class} className="mb-2">
+                            <p className="text-lg font-bold text-blue-700 capitalize">
+                              {p.seat_class}: ₹ {p.current_price}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xl font-bold text-blue-700">
+                          Price Unavailable
+                        </p>
+                      )}
+
+                      <button
+                        onClick={() =>
+                          router.push(`/flight-info?flightId=${flight.flight_id}`)
+                        }
+                        className="bg-blue-600 texxt-black py-2 px-3 rounded-md mt-2 hover:bg-blue-700 transition"
+                      >
+                        Select
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
         {!error &&
           directItineraries.length === 0 &&

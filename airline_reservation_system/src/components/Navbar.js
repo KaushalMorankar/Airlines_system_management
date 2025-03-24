@@ -39,7 +39,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-white shadow">
+    <header className="bg-white">
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo (left) */}
         <div className="flex items-center space-x-2">
@@ -63,13 +63,13 @@ export default function Navbar() {
           </Link>
           {user ? (
             <>
+              <span className="text-gray-600">Hello, {user.email}</span>
               <button
                 onClick={handleLogout}
-                className="text-gray-600 hover:text-blue-600 transition"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transform hover:scale-110 transition duration-200 ease-in-out"
               >
                 Logout
               </button>
-              <span className="text-gray-600">Hello, {user.email}</span>
             </>
           ) : (
             <>
@@ -85,11 +85,6 @@ export default function Navbar() {
               </Link>
             </>
           )}
-          <input
-            type="text"
-            placeholder="Search"
-            className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
         </nav>
       </div>
     </header>

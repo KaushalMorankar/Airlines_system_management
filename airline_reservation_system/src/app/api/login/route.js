@@ -58,3 +58,93 @@ export async function POST(req) {
     );
   }
 }
+
+
+// // app/api/login/route.js
+// import pool from "@/lib/db";
+// import jwt from "jsonwebtoken";
+
+// const JWT_SECRET =
+//   process.env.JWT_SECRET ||
+//   "97a9e10a5c110bfc771f5a8434da1ae45f8ff95521e75fe5f1fd9b6109f990dd1c0a9b364d876b8829757400aa7c253570226754b3fc60982cd138ead6ad6884";
+
+// export async function POST(req) {
+//   try {
+//     // Expect the client to send email and password
+//     const { email, password } = await req.json();
+//     const apiKey = process.env.FIREBASE_API_KEY;
+//     if (!apiKey) {
+//       return new Response(
+//         JSON.stringify({ message: "Firebase API key not configured" }),
+//         { status: 500 }
+//       );
+//     }
+
+//     // Use email/password authentication via Firebase
+//     const firebaseEndpoint = "signInWithPassword";
+//     const firebasePayload = {
+//       email,
+//       password,
+//       returnSecureToken: true,
+//     };
+
+//     // Verify credentials with Firebase
+//     const firebaseRes = await fetch(
+//       `https://identitytoolkit.googleapis.com/v1/accounts:${firebaseEndpoint}?key=${apiKey}`,
+//       {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(firebasePayload),
+//       }
+//     );
+//     const firebaseData = await firebaseRes.json();
+//     if (!firebaseRes.ok) {
+//       return new Response(
+//         JSON.stringify({
+//           message:
+//             firebaseData.error.message || "Firebase authentication failed",
+//         }),
+//         { status: 401 }
+//       );
+//     }
+
+//     // Firebase authentication succeeded.
+//     // firebaseData.localId is the Firebase UID.
+//     // Query your local database for the user details using the email.
+//     const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+//       email,
+//     ]);
+//     if (result.rows.length === 0) {
+//       // For this example, we require that the user already exists in your system.
+//       return new Response(
+//         JSON.stringify({ message: "User not found in our system" }),
+//         { status: 404 }
+//       );
+//     }
+//     const user = result.rows[0];
+
+//     // Generate your own JWT token with details from your local user.
+//     const token = jwt.sign(
+//       { id: user.user_id, email: user.email, firebaseId: firebaseData.localId },
+//       JWT_SECRET,
+//       { expiresIn: "7d" }
+//     );
+
+//     // Create a response and set an HttpOnly cookie with the token.
+//     const response = new Response(
+//       JSON.stringify({ message: "Login successful", user }),
+//       { status: 200 }
+//     );
+//     response.headers.set(
+//       "Set-Cookie",
+//       `token=${token}; HttpOnly; Path=/; Max-Age=604800; Secure; SameSite=Strict`
+//     );
+//     return response;
+//   } catch (error) {
+//     console.error("Login error:", error);
+//     return new Response(
+//       JSON.stringify({ message: "Internal server error" }),
+//       { status: 500 }
+//     );
+//   }
+// }

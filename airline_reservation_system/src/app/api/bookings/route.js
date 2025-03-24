@@ -41,8 +41,8 @@ export async function GET(request) {
   }
   const userId = userResult.rows[0].user_id;
   
-  // Updated query: join reservations, reservation_flights and flights,
-  // and aggregate flights details for each reservation.
+  // Updated query: join reservations, reservation_flights, flights, and airports,
+  // and aggregate flight details for each reservation, including airport city and IATA code.
   const query = `
     SELECT 
       r.reservation_id, 
@@ -56,12 +56,18 @@ export async function GET(request) {
           'departure_airport_id', f.departure_airport_id,
           'arrival_airport_id', f.arrival_airport_id,
           'scheduled_departure_time', f.scheduled_departure_time,
-          'scheduled_arrival_time', f.scheduled_arrival_time
+          'scheduled_arrival_time', f.scheduled_arrival_time,
+          'departure_city', ad.city,
+          'departure_iata', ad.iata_code,
+          'arrival_city', aa.city,
+          'arrival_iata', aa.iata_code
         ) ORDER BY rf.flight_order
       ) AS flights
     FROM reservations r
     JOIN reservation_flights rf ON r.reservation_id = rf.reservation_id
     JOIN flights f ON rf.flight_id = f.flight_id
+    JOIN airports ad ON f.departure_airport_id = ad.airport_id
+    JOIN airports aa ON f.arrival_airport_id = aa.airport_id
     WHERE r.user_id = $1
     GROUP BY r.reservation_id, r.bookingdate, r.status, r.total_price
     ORDER BY r.bookingdate DESC;
