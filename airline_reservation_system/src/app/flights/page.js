@@ -639,6 +639,9 @@ export default function BookFlight() {
                   {/* Timing & Route Info */}
                   <div className="flex flex-col md:flex-row md:w-3/5 items-center justify-around">
                     <div className="text-center mb-2 md:mb-0">
+                      <p className="text-gray-500 text-sm">
+                        {flight.departure_iata}
+                      </p> 
                       <p className="text-xl font-semibold">
                         {new Date(
                           flight.scheduled_departure_time
@@ -658,6 +661,9 @@ export default function BookFlight() {
                       </p>
                     </div>
                     <div className="text-center">
+                      <p className="text-gray-500 text-sm">
+                        {flight.arrival_iata}
+                      </p> 
                       <p className="text-xl font-semibold">
                         {new Date(
                           flight.scheduled_arrival_time
@@ -751,6 +757,7 @@ export default function BookFlight() {
                   key={`${itinerary.first_flight_id}-${itinerary.second_flight_id}`}
                   className="bg-white texxt-black rounded-lg shadow-md p-4 mb-4"
                 >
+                  
                   {/* Two-column layout: Left = flight details, Right = price + action */}
                   <div className="flex flex-col md:flex-row">
                     {/* LEFT: Two flight legs stacked */}
@@ -765,10 +772,13 @@ export default function BookFlight() {
                             className="w-12 h-12 object-contain"
                           />
                           <div className="flex flex-col">
+                            <span className="text-sm text-gray-600">
+                              {itinerary.departure_iata}
+                            </span>
                             <span className="text-lg font-bold">
                               {firstDepartureTime}
                             </span>
-                            <span className="text-sm text-gray-300">
+                            <span className="text-sm text-gray-600">
                               {itinerary.first_departure_airport_code || "Depart"}
                             </span>
                           </div>
@@ -784,10 +794,13 @@ export default function BookFlight() {
 
                         {/* Arrival */}
                         <div className="flex flex-col text-right">
+                          <span className="text-sm text-gray-600">
+                            {itinerary.transit_iata}
+                          </span>
                           <span className="text-lg font-bold">
                             {firstArrivalTime}
                           </span>
-                          <span className="text-sm text-gray-300">
+                          <span className="text-sm text-gray-600">
                             {itinerary.first_arrival_airport_code || "Arrival"}
                           </span>
                         </div>
@@ -806,11 +819,14 @@ export default function BookFlight() {
                             className="w-12 h-12 object-contain"
                           />
                           <div className="flex flex-col">
+                            <span className="text-sm text-gray-600">
+                              {itinerary.transit_iata}
+                            </span>
                             <span className="text-lg font-bold">
                               {secondDepartureTime}
                             </span>
-                            <span className="text-sm text-gray-300">
-                              {itinerary.second_departure_airport_code || "Depart"}
+                            <span className="text-sm text-gray-600">
+                              {itinerary.second_departure_airport_code || "Departure"}
                             </span>
                           </div>
                         </div>
@@ -825,11 +841,14 @@ export default function BookFlight() {
 
                         {/* Arrival */}
                         <div className="flex flex-col text-right">
+                          <span className="text-sm text-gray-600">
+                            {itinerary.arrival_iata}
+                          </span>
                           <span className="text-lg font-bold">
                             {secondArrivalTime}
                           </span>
-                          <span className="text-sm text-gray-300">
-                            {itinerary.second_arrival_airport_code || "Arrival"}
+                          <span className="text-sm text-gray-600">
+                          {itinerary.second_arrival_airport_code || "Arrival"}
                           </span>
                         </div>
                       </div>

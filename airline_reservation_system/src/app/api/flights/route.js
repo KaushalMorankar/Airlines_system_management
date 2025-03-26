@@ -314,6 +314,8 @@ export async function GET(request) {
          f.flight_id,
          f.departure_airport_id,
          f.arrival_airport_id,
+         a_dep.iata_code AS departure_iata,
+         a_arr.iata_code AS arrival_iata,
          f.scheduled_departure_time,
          f.scheduled_arrival_time,
          f.airline_id,
@@ -330,55 +332,63 @@ export async function GET(request) {
            WHERE p.flight_id = f.flight_id
          ) AS pricing_info
        FROM flights f
+       JOIN airports a_dep ON f.departure_airport_id = a_dep.airport_id
+       JOIN airports a_arr ON f.arrival_airport_id = a_arr.airport_id
        WHERE f.departure_airport_id = $1
          AND f.arrival_airport_id = $2
          AND date(f.scheduled_departure_time) = $3`,
       [departureAirportId, destinationAirportId, flightDate]
-    );
+    );    
 
     // --- Connecting (One‑Stop) Flights Query ---
     const connectingFlightsRes = await pool.query(
       `SELECT 
-  f1.flight_id AS first_flight_id,
-  f2.flight_id AS second_flight_id,
-  f1.departure_airport_id AS departure_airport_id,
-  f2.arrival_airport_id AS arrival_airport_id,
-  f1.scheduled_departure_time AS first_departure,
-  f1.scheduled_arrival_time AS first_arrival,
-  f2.scheduled_departure_time AS second_departure,
-  f2.scheduled_arrival_time AS second_arrival,
-  f1.arrival_airport_id AS transit_airport,
-  'connecting' AS itinerary_type,
-  (
-    SELECT json_agg(json_build_object(
-      'seat_class', p.seat_class,
-      'base_price', p.base_price,
-      'current_price', p.current_price,
-      'demand_factor', p.demand_factor
-    ))
-    FROM pricing p
-    WHERE p.flight_id = f1.flight_id
-  ) AS pricing_info_first,
-  (
-    SELECT json_agg(json_build_object(
-      'seat_class', p.seat_class,
-      'base_price', p.base_price,
-      'current_price', p.current_price,
-      'demand_factor', p.demand_factor
-    ))
-    FROM pricing p
-    WHERE p.flight_id = f2.flight_id
-  ) AS pricing_info_second
-FROM flights f1
-JOIN flights f2 ON f1.arrival_airport_id = f2.departure_airport_id
-WHERE f1.departure_airport_id = $1
-  AND f2.arrival_airport_id = $2
-  AND date(f1.scheduled_departure_time) = $3
-  AND f1.scheduled_arrival_time < f2.scheduled_departure_time
-  AND (f2.scheduled_departure_time - f1.scheduled_arrival_time) >= interval '30 minutes'
-  AND (f2.scheduled_departure_time - f1.scheduled_arrival_time) <= interval '12 hours'`,
+        f1.flight_id AS first_flight_id,
+        f2.flight_id AS second_flight_id,
+        f1.departure_airport_id AS departure_airport_id,
+        a1.iata_code AS departure_iata,
+        f2.arrival_airport_id AS arrival_airport_id,
+        a2.iata_code AS arrival_iata,
+        f1.scheduled_departure_time AS first_departure,
+        f1.scheduled_arrival_time AS first_arrival,
+        f2.scheduled_departure_time AS second_departure,
+        f2.scheduled_arrival_time AS second_arrival,
+        f1.arrival_airport_id AS transit_airport,
+        a3.iata_code AS transit_iata,
+        'connecting' AS itinerary_type,
+        (
+          SELECT json_agg(json_build_object(
+            'seat_class', p.seat_class,
+            'base_price', p.base_price,
+            'current_price', p.current_price,
+            'demand_factor', p.demand_factor
+          ))
+          FROM pricing p
+          WHERE p.flight_id = f1.flight_id
+        ) AS pricing_info_first,
+        (
+          SELECT json_agg(json_build_object(
+            'seat_class', p.seat_class,
+            'base_price', p.base_price,
+            'current_price', p.current_price,
+            'demand_factor', p.demand_factor
+          ))
+          FROM pricing p
+          WHERE p.flight_id = f2.flight_id
+        ) AS pricing_info_second
+      FROM flights f1
+      JOIN flights f2 ON f1.arrival_airport_id = f2.departure_airport_id
+      JOIN airports a1 ON f1.departure_airport_id = a1.airport_id
+      JOIN airports a3 ON f1.arrival_airport_id = a3.airport_id
+      JOIN airports a2 ON f2.arrival_airport_id = a2.airport_id
+      WHERE f1.departure_airport_id = $1
+        AND f2.arrival_airport_id = $2
+        AND date(f1.scheduled_departure_time) = $3
+        AND f1.scheduled_arrival_time < f2.scheduled_departure_time
+        AND (f2.scheduled_departure_time - f1.scheduled_arrival_time) >= interval '30 minutes'
+        AND (f2.scheduled_departure_time - f1.scheduled_arrival_time) <= interval '12 hours'`,
       [departureAirportId, destinationAirportId, flightDate]
-    );
+    );    
 
     // Package both direct and connecting itineraries
     const itineraries = {
