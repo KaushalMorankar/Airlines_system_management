@@ -596,7 +596,7 @@ export default function BookingsPage() {
                 </span>
               </div>
               <div>
-                <span className="font-semibold">Total Price:</span>{" "}
+                <span className="font-semibold">Total Price: ₹ </span>{" "}
                 {selectedBooking.total_price}
               </div>
             </div>

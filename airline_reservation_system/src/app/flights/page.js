@@ -691,7 +691,7 @@ export default function BookFlight() {
                       flight.pricing_info.map((p) => (
                         <div key={p.seat_class} className="mb-2">
                           <p className="block text-l font-bold text-blue-400">
-                            {p.seat_class}: ₹ {p.current_price}
+                          {p.seat_class}: ₹ {parseFloat(p.current_price).toFixed(2)}
                           </p>
                         </div>
                       ))
@@ -876,7 +876,7 @@ export default function BookFlight() {
                             <>
                               <span className="text-sm text-blue-400">Minimum Price</span>
                               <span className="block text-l font-bold text-blue-400">
-                                ₹{minCombined} 
+                                ₹{parseFloat(minCombined).toFixed(2)} 
                               </span>
                               <span className="text-sm text-gray-400">2 bookings required</span>
                             </>

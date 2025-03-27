@@ -796,7 +796,7 @@ export default function FlightInfo() {
             )}
             <p className="text-xl mt-2">
               Total Price:{" "}
-              {totalPrice !== null ? `$${totalPrice.toFixed(2)}` : "Calculating..."}
+              {totalPrice !== null ? `₹ ${totalPrice.toFixed(2)}` : "Calculating..."}
             </p>
           </div>
         )}

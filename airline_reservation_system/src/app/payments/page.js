@@ -609,7 +609,7 @@ export default function Payments() {
           {secondFlightId && <p>Flight 2 ID: {secondFlightId}</p>}
           <p>Selected Seats Flight 1: {selectedSeatNumbersFlight1}</p>
           {secondFlightId && <p>Selected Seats Flight 2: {selectedSeatNumbersFlight2}</p>}
-          <p>Total Price: ${totalPrice?.toFixed(2)}</p>
+          <p>Total Price: ₹ {totalPrice?.toFixed(2)}</p>
           <p>Reservation ID: {reservationId}</p>
           <button onClick={() => router.push("/")} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">
             Go to Home
@@ -627,7 +627,7 @@ export default function Payments() {
         <h1 className="text-3xl font-bold mb-4">Payment & Passenger Details</h1>
         <p>Flight ID: {flightId}</p>
         {secondFlightId && <p>Flight 2 ID: {secondFlightId}</p>}
-        <p>Total Price: {totalPrice ? `$${totalPrice.toFixed(2)}` : "Calculating..."}</p>
+        <p>Total Price: {totalPrice ? `₹ ${totalPrice.toFixed(2)}` : "Calculating..."}</p>
 
         {secondFlightId ? (
           <div className="w-full max-w-xl mt-6">
