@@ -455,22 +455,28 @@ export default function BookFlight() {
     setFlights([]);
     setDirectItineraries([]);
     setConnectingItineraries([]);
-
+  
+    // Validate departure and destination
     if (!selectedDeparture.trim() || !selectedDestination.trim()) {
       setError("Please select both departure and destination cities.");
       return;
     }
-
+  
+    // Validate flight date: Do not allow a date in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to midnight for an accurate date-only comparison
+    const chosenDate = new Date(flightDate);
+    if (chosenDate < today) {
+      setError("Please choose a date that is not in the past.");
+      return;
+    }
+  
     try {
       const res = await fetch(
-        `/api/flights?departureCity=${encodeURIComponent(
-          selectedDeparture
-        )}&destinationCity=${encodeURIComponent(
-          selectedDestination
-        )}&flightDate=${encodeURIComponent(flightDate)}`
+        `/api/flights?departureCity=${encodeURIComponent(selectedDeparture)}&destinationCity=${encodeURIComponent(selectedDestination)}&flightDate=${encodeURIComponent(flightDate)}`
       );
       const data = await res.json();
-
+  
       if (!res.ok) {
         setError(data.error || "An error occurred");
       } else {
@@ -488,6 +494,7 @@ export default function BookFlight() {
       setError("Failed to fetch flights.");
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
