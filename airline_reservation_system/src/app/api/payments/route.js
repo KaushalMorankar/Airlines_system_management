@@ -174,7 +174,6 @@ const JWT_SECRET =
 
 export async function POST(request) {
   try {
-    // --- 1. JWT Authentication ---
     const cookie = request.headers.get("cookie") || "";
     const tokenMatch = cookie.match(/token=([^;]+)/);
     if (!tokenMatch) {
@@ -199,7 +198,7 @@ export async function POST(request) {
     }
     const userId = userResult.rows[0].user_id;
 
-    // --- 2. Parse and validate request body ---
+    // 2. Parse and validate request body
     const { flightId, secondFlightId, seatAllocationIds, seatAllocationIdsSecond, totalPrice } =
       await request.json();
     if (!flightId || !seatAllocationIds || seatAllocationIds.length === 0 || totalPrice === undefined) {
@@ -215,10 +214,10 @@ export async function POST(request) {
       );
     }
 
-    // --- 3. Begin transaction ---
+    // 3. Begin transaction
     await pool.query("BEGIN");
 
-    // --- 4. Validate and lock Flight 1 seats ---
+    // 4. Validate and lock Flight 1 seats
     const seatQuery = `
       SELECT seat_allocation_id, seatnumber, seat_class, status
       FROM seat_allocation
@@ -243,7 +242,7 @@ export async function POST(request) {
       }
     }
 
-    // --- 5. Validate and lock Flight 2 seats (if applicable) ---
+    // 5. Validate and lock Flight 2 seats (if applicable)
     let seatRes2;
     if (secondFlightId) {
       const seatQuery2 = `
@@ -271,7 +270,7 @@ export async function POST(request) {
       }
     }
 
-    // --- 6. Create reservation record (without flight_id) ---
+    // 6. Create reservation record (without flight_id)
     const reservationInsertQuery = `
       INSERT INTO reservations (user_id, bookingdate, status, total_price)
       VALUES ($1, NOW(), 'Confirmed', $2)
@@ -280,7 +279,7 @@ export async function POST(request) {
     const reservationRes = await pool.query(reservationInsertQuery, [userId, totalPrice]);
     const reservationId = reservationRes.rows[0].reservation_id;
 
-    // --- 7. Insert flight associations in reservation_flights ---
+    // 7. Insert flight associations in reservation_flights
     const insertRFQuery = `
       INSERT INTO reservation_flights (reservation_id, flight_id, flight_order)
       VALUES ($1, $2, $3)
@@ -292,7 +291,7 @@ export async function POST(request) {
       await pool.query(insertRFQuery, [reservationId, secondFlightId, 2]);
     }
 
-    // --- 8. Update seat allocation for Flight 1 seats ---
+    // 8. Update seat allocation for Flight 1 seats
     const updateSeatQuery = `
       UPDATE seat_allocation
       SET reservation_id = $1, status = 'booked'
@@ -321,7 +320,7 @@ export async function POST(request) {
       await pool.query(updatePricingQuery, [flightId, seat.seat_class]);
     }
 
-    // --- 9. Process Flight 2 if provided ---
+    // 9. Process Flight 2 if provided
     if (secondFlightId) {
       const updateSeatQuery2 = `
         UPDATE seat_allocation
@@ -352,7 +351,7 @@ export async function POST(request) {
       }
     }
 
-    // --- 10. Insert payment record into payments table ---
+    // 10. Insert payment record into payments table
     const insertPaymentQuery = `
       INSERT INTO payments (reservation_id, payment_date, amount, payment_method, payment_status)
       VALUES ($1, NOW(), $2, 'Card', 'Paid')
@@ -361,7 +360,7 @@ export async function POST(request) {
     const paymentResInsert = await pool.query(insertPaymentQuery, [reservationId, totalPrice]);
     const payment = paymentResInsert.rows[0];
 
-    // --- 11. Commit transaction ---
+    // 11. Commit transaction
     await pool.query("COMMIT");
 
     return NextResponse.json({ reservationId, totalPrice, payment }, { status: 201 });

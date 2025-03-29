@@ -46,7 +46,7 @@ export async function POST(request) {
     const userId = userResult.rows[0].user_id;
 
     // 3. Parse the request body and validate required fields.
-    // Expecting: flightId and an array of seatAllocationIds.
+    //flightId and an array of seatAllocationIds.
     const { flightId, seatAllocationIds } = await request.json();
     if (!flightId || !seatAllocationIds || seatAllocationIds.length === 0) {
       return NextResponse.json(
@@ -55,7 +55,7 @@ export async function POST(request) {
       );
     }
 
-    // 4. Begin a transaction to ensure data consistency.
+    // 4. transaction to ensure data consistency.
     await pool.query("BEGIN");
 
     // 5. Retrieve and lock the selected seat records to prevent concurrent updates.
@@ -118,8 +118,6 @@ export async function POST(request) {
       WHERE seat_allocation_id = ANY($2::int[])
     `;
     await pool.query(updateSeatQuery, [reservationId, seatAllocationIds]);
-
-    // (Optional) You could also insert related tickets or payment records here.
 
     // 9. Commit the transaction.
     await pool.query("COMMIT");

@@ -12,7 +12,7 @@ export async function GET(req) {
   }
 
   try {
-    // Use a parameterized query for safety; ILIKE for case-insensitive matching.
+    //parameterized query for safety; ILIKE for case-insensitive matching.
     const result = await pool.query(
       "SELECT * FROM airports WHERE city ILIKE $1",
       [`%${city}%`]

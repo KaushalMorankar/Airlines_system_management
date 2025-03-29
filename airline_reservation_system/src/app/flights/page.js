@@ -378,7 +378,7 @@ export default function BookFlight() {
   const [flightDate, setFlightDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  // Retaining your original flights state for backward compatibility
+  // Retaining original flights state for backward compatibility
   const [flights, setFlights] = useState([]);
   const [directItineraries, setDirectItineraries] = useState([]);
   const [connectingItineraries, setConnectingItineraries] = useState([]);

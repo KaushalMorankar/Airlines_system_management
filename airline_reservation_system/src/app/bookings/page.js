@@ -406,7 +406,6 @@ export default function BookingsPage() {
     setSelectedBooking(null);
   };
 
-  // Example “Cancel Booking” function (if you want in modal)
   const cancelBooking = async (reservationId, refundAmount) => {
     try {
       const response = await fetch("/api/reservations/cancel", {

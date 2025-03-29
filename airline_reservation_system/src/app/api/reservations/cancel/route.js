@@ -9,7 +9,7 @@ const JWT_SECRET =
 export async function POST(request) {
   try {
     // Parse the request body.
-    // Expected fields: reservationId and refundAmount (calculated per your refund policy)
+    // Expected fields: reservationId and refundAmount 
     const body = await request.json();
     const { reservationId, refundAmount } = body;
     if (!reservationId || refundAmount === undefined) {
@@ -77,7 +77,6 @@ export async function POST(request) {
     }
 
     // Ensure the reservation belongs to the user making the request.
-    // (Assuming reservations has a user_id field)
     const ownerCheckQuery = `
       SELECT reservation_id FROM reservations
       WHERE reservation_id = $1 AND user_id = $2
@@ -96,7 +95,7 @@ export async function POST(request) {
     `;
     await pool.query(updateReservationQuery, [reservationId]);
 
-    // Update the seat allocation: free up seats (or mark them as cancelled/available).
+    // Update the seat allocation: free up seats
     const updateSeatsQuery = `
       UPDATE seat_allocation
       SET reservation_id = NULL, status = 'not booked'
@@ -120,14 +119,6 @@ export async function POST(request) {
     `;
     const refundRes = await pool.query(insertRefundQuery, [reservationId, refundAmount]);
     const refundId = refundRes.rows[0].refund_id;
-
-    // Optionally, update the payment record if you want to mark it as refunded.
-    // const updatePaymentQuery = `
-    //   UPDATE payments
-    //   SET payment_status = 'Refunded'
-    //   WHERE reservation_id = $1
-    // `;
-    // await pool.query(updatePaymentQuery, [reservationId]);
 
     // Commit the transaction.
     await pool.query("COMMIT");

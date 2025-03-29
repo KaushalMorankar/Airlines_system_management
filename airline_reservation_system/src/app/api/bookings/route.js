@@ -130,7 +130,7 @@ export async function GET(request) {
   }
   const userId = userResult.rows[0].user_id;
   
-  // Updated query using subqueries for flights and passengers to avoid duplication.
+  // Query using subqueries for flights and passengers to avoid duplication.
   const query = `
     SELECT 
   r.reservation_id,
@@ -180,7 +180,6 @@ WHERE r.user_id = $1
     WHERE rf.reservation_id = r.reservation_id
   )
 ORDER BY r.bookingdate DESC;
-
   `;
   
   try {

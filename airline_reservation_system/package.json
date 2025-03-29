@@ -13,10 +13,12 @@
     "daisyui": "^5.0.9",
     "fetch": "^1.1.0",
     "firebase": "^11.5.0",
+    "firebase-admin": "^13.2.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.1.7",
     "next-auth": "^4.24.11",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^6.10.0",
     "pg": "^8.13.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
